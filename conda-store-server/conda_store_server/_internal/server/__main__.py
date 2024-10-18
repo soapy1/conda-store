@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-import logging
 import os
 
 import uvicorn
@@ -12,17 +11,12 @@ import conda_store_server
 from conda_store_server._internal.server.app import CondaStoreServer
 
 
-logger = logging.getLogger(__name__)
+main = CondaStoreServer.launch_instance
 
-server = CondaStoreServer.launch_instance()
-logger.info(f"Starting server on {server.address}:{server.port}")
-
-app = server.init_fastapi_app()
-
-
-def main():
+if __name__ == "__main__":
+    server = main()
     uvicorn.run(
-        "conda_store_server._internal.server.__main__:app",
+        "conda_store_server._internal.server.app:CondaStoreServer.create_webserver",
         host=server.address,
         port=server.port,
         workers=1,
@@ -32,4 +26,5 @@ def main():
         reload_dirs=(
             [os.path.dirname(conda_store_server.__file__)] if server.reload else []
         ),
+        factory=True,
     )

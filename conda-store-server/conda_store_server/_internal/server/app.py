@@ -219,6 +219,7 @@ class CondaStoreServer(Application):
         def trim_slash(url):
             return url[:-1] if url.endswith("/") else url
 
+        global app
         app = FastAPI(
             title="conda-store",
             version=__version__,
@@ -385,6 +386,8 @@ class CondaStoreServer(Application):
             )
 
     def start(self):
+        self.init_fastapi_app()
+
         with self.conda_store.session_factory() as db:
             self.conda_store.ensure_settings(db)
             self.conda_store.ensure_namespace(db)
@@ -431,6 +434,8 @@ class CondaStoreServer(Application):
             logger = logging.getLogger("app")
             logger.addHandler(logging.StreamHandler())
             logger.setLevel(self.log_level)
+            logger.info(f"Starting server on {self.address}:{self.port}")
+
         except:
             import traceback
 
@@ -440,3 +445,8 @@ class CondaStoreServer(Application):
             if self.standalone:
                 process.join()
             worker_checker.join()
+
+    @classmethod
+    def create_webserver(cls) -> FastAPI:
+        server = cls.launch_instance()
+        return server.init_fastapi_app()
