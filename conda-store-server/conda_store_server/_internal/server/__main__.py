@@ -3,8 +3,6 @@
 # license that can be found in the LICENSE file.
 
 
-
-
 from conda_store_server._internal.server.app import CondaStoreServer
 
 
