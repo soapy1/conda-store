@@ -11,6 +11,8 @@ import time
 from enum import Enum
 from threading import Thread
 
+import uvicorn
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -30,6 +32,8 @@ from traitlets import (
     validate,
 )
 from traitlets.config import Application, catch_config_error
+
+import conda_store_server
 
 from conda_store_server import __version__, storage
 from conda_store_server._internal import dbutil, orm
@@ -219,7 +223,6 @@ class CondaStoreServer(Application):
         def trim_slash(url):
             return url[:-1] if url.endswith("/") else url
 
-        global app
         app = FastAPI(
             title="conda-store",
             version=__version__,
@@ -386,8 +389,6 @@ class CondaStoreServer(Application):
             )
 
     def start(self):
-        self.init_fastapi_app()
-
         with self.conda_store.session_factory() as db:
             self.conda_store.ensure_settings(db)
             self.conda_store.ensure_namespace(db)
@@ -436,6 +437,22 @@ class CondaStoreServer(Application):
             logger.setLevel(self.log_level)
             logger.info(f"Starting server on {self.address}:{self.port}")
 
+            uvicorn.run(
+                "conda_store_server._internal.server.app:CondaStoreServer.create_webserver",
+                host=self.address,
+                port=self.port,
+                workers=1,
+                proxy_headers=self.behind_proxy,
+                forwarded_allow_ips=("*" if self.behind_proxy else None),
+                reload=self.reload,
+                reload_dirs=(
+                    [os.path.dirname(conda_store_server.__file__)]
+                    if self.reload
+                    else []
+                ),
+                factory=True,
+            )
+
         except:
             import traceback
 
@@ -448,5 +465,6 @@ class CondaStoreServer(Application):
 
     @classmethod
     def create_webserver(cls) -> FastAPI:
-        server = cls.launch_instance()
-        return server.init_fastapi_app()
+        app = CondaStoreServer()
+        app.initialize()
+        return app.init_fastapi_app()
