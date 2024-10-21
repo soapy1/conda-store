@@ -207,9 +207,6 @@ class CondaStoreServer(Application):
             f"Running conda-store with store directory: {self.conda_store.store_directory}"
         )
 
-        if self.conda_store.upgrade_db:
-            dbutil.upgrade(self.conda_store.database_url)
-
         self.authentication = self.authentication_class(
             parent=self,
             log=self.log,
@@ -218,6 +215,11 @@ class CondaStoreServer(Application):
 
         # ensure checks on redis_url
         self.conda_store.redis_url
+
+    def run_db_migrations(self):
+        if self.conda_store.upgrade_db:
+            dbutil.upgrade(self.conda_store.database_url)
+
 
     def init_fastapi_app(self):
         def trim_slash(url):
@@ -390,6 +392,8 @@ class CondaStoreServer(Application):
 
     def start(self):
         """Start the CondaStoreServer application, and run a FastAPI-based webserver."""
+        self.run_db_migrations()
+
         with self.conda_store.session_factory() as db:
             self.conda_store.ensure_settings(db)
             self.conda_store.ensure_namespace(db)
