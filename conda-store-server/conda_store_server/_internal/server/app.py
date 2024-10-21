@@ -389,6 +389,7 @@ class CondaStoreServer(Application):
             )
 
     def start(self):
+        """Start the CondaStoreServer application, and run a FastAPI-based webserver."""
         with self.conda_store.session_factory() as db:
             self.conda_store.ensure_settings(db)
             self.conda_store.ensure_namespace(db)
@@ -464,7 +465,15 @@ class CondaStoreServer(Application):
             worker_checker.join()
 
     @classmethod
-    def create_webserver(cls) -> FastAPI:
-        app = CondaStoreServer()
+    def create_webserver(cls: type) -> FastAPI:
+        """Create a CondaStoreServer instance to load the config, then return a FastAPI app.
+
+        Returns
+        -------
+        FastAPI
+            A FastAPI app configured using a fresh CondaStoreServer instance
+
+        """
+        app = cls()
         app.initialize()
         return app.init_fastapi_app()
