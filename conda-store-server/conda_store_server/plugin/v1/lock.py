@@ -6,21 +6,20 @@ class LockPlugin():
     def __init__(self, *args, **kwargs):
         pass
 
-    @classmethod
     def name(cls):
         raise NotImplementedError
     
     def synopsis(self):
-        return ""
+        raise NotImplementedError
     
     def lock_environment(self, spec, platforms):
         """Solve the environment and generate a lockfile for a given spec on given platforms"""
-        pass
+        raise NotImplementedError
 
     def to_environment_spec(self):
         """Converts the plugin's notion of an environment spec to a conda-store lock spec"""
-        pass
+        raise NotImplementedError
 
     def from_environment_spec(self):
         """Converts a conda-store lock speck to the plugin's notion of a lock spec"""
-        pass
+        raise NotImplementedError

@@ -12,7 +12,7 @@ import yaml
 from conda_lock.conda_lock import run_lock
 
 from conda_store_server.plugin.v1.lock import LockPlugin
-from conda_store_server._internal.action.utils import logged_command
+from conda_store_server.plugin import action_context
 
 
 class CondaSlimLocker(LockPlugin):
@@ -30,6 +30,7 @@ class CondaSlimLocker(LockPlugin):
     def synopsis(self):
         return "Use conda api to build lock file"
     
+    @action_context.action
     def lock_environment(self, spec, platforms, logger):
         logger.info("lock_environment entrypoint for conda_slim_locker")
         workdir = pathlib.Path(self.workdir)

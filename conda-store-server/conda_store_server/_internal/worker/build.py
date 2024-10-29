@@ -223,9 +223,8 @@ def build_conda_environment(db: Session, conda_store, build):
                     ),
                 )
             else:
-                context = action.action_solve_lockfile2(
-                    conda_store.locker,
-                    specification=schema.CondaSpecification.parse_obj(
+                context = conda_store.locker.lock_environment(
+                    spec=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),
                     platforms=settings.conda_solve_platforms,
@@ -233,7 +232,7 @@ def build_conda_environment(db: Session, conda_store, build):
                         db=db,
                         conda_store=conda_store,
                         build=build,
-                        prefix="action_solve_lockfile2: ",
+                        prefix=f"{conda_store.locker.name()}-solve_lockfile: ",
                     ),
                 )
 
