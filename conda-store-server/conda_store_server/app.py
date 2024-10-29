@@ -28,7 +28,9 @@ from traitlets.config import LoggingConfigurable
 
 from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
+from conda_store_server import exception
 from conda_store_server.plugin.manager import Manager
+from conda_store_server.plugin.v1 import lock
 # HACK: we'll want to discover plugins instead of manually importing and regiestering them
 from conda_store_server._internal.plugins.lock.conda_lock import CondaLock
 
@@ -83,6 +85,13 @@ class CondaStore(LoggingConfigurable):
     container_registry_class = Type(
         default_value=registry.ContainerRegistry,
         klass=registry.ContainerRegistry,
+        allow_none=False,
+        config=True,
+    )
+
+    locker_class = Type(
+        default_value=CondaLock,
+        klass=lock.LockPlugin,
         allow_none=False,
         config=True,
     )
@@ -485,6 +494,21 @@ class CondaStore(LoggingConfigurable):
         self._plugin_manager.register_plugin(CondaLock)
 
         return self._plugin_manager
+    
+    @property
+    def locker(self):
+        if hasattr(self, "_locker"):
+            return self._locker
+        
+        lock_plugins = self.plugin_manager.get_lock_plugins()
+
+        # TODO: validate plugin is valid + configure plugin
+        if self.locker_class in lock_plugins.values():
+            self._locker = self.locker_class()
+        else:
+            raise exception.CondaStorePluginNotFoundError(self.locker_class.name(), self.plugin_manager.registered.keys())
+
+        return self._locker
 
     def ensure_settings(self, db: Session):
         """Ensure that conda-store traitlets settings are applied"""

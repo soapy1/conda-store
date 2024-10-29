@@ -14,14 +14,17 @@ class Manager():
         return cls._instance
 
     def __init__(self):
-        self.registered = []
+        # plugins are registered in the map of the form
+        # {plugin_name: plugin_class}
+        self.registered = {}
 
     def get_lock_plugins(self):
-        """Returns a list of all registered lock plugins"""
-        return [p for p in self.registered if  issubclass(p, LockPlugin)]
+        """Returns a dict of all registered lock plugins, keyed by the plugin name"""
+        return {name: plugin for name, plugin in self.registered.items() if issubclass(plugin, LockPlugin)}
     
     def register_plugin(self, p):
         """Adds plugin to the list of registered plugins"""
-        if p not in self.registered:
-            self.registered.append(p)
+        plugin_name = p.name()
+        if plugin_name not in self.registered:
+            self.registered[plugin_name] = p
 
