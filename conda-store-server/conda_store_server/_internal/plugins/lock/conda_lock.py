@@ -15,13 +15,17 @@ from conda_store_server._internal.action.utils import logged_command
 
 
 class CondaLock(LockPlugin):
-    def initialize(self, *args, **kwargs):
+    @classmethod
+    def name(cls):
+        return "conda-lock"
+    
+    def __init__(self, *args, **kwargs):
         # TODO: config plugin
         self.conda_command = kwargs.get("conda_command") or "mamba"
         self.conda_flags = kwargs.get("conda_flags") or "--strict-channel-priority"
         self.workdir = tempfile.TemporaryDirectory()
         return super().initialize(*args, **kwargs)
-    
+
     def synopsis(self):
         return "Use conda lock to build lock file"
     

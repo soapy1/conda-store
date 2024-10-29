@@ -3,9 +3,13 @@
 # license that can be found in the LICENSE file.
 
 class LockPlugin():
-    def initialize(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         pass
 
+    @classmethod
+    def name(cls):
+        raise NotImplementedError
+    
     def synopsis(self):
         return ""
     
