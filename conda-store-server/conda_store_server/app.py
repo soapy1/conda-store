@@ -28,6 +28,9 @@ from traitlets.config import LoggingConfigurable
 
 from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
+from conda_store_server.plugin.manager import Manager
+# HACK: we'll want to discover plugins instead of manually importing and regiestering them
+from conda_store_server._internal.plugins.lock.conda_lock import CondaLock
 
 
 def conda_store_validate_specification(
@@ -470,6 +473,18 @@ class CondaStore(LoggingConfigurable):
         self._celery_app = Celery("tasks")
         self._celery_app.config_from_object(self.celery_config)
         return self._celery_app
+
+    @property
+    def plugin_manager(self):
+        if hasattr(self, "_plugin_manager"):
+            return self._plugin_manager
+
+        self._plugin_manager = Manager()
+        # TODO: register plugins,
+        # HACK: manually register lock plugin
+        self._plugin_manager.register_plugin(CondaLock)
+
+        return self._plugin_manager
 
     def ensure_settings(self, db: Session):
         """Ensure that conda-store traitlets settings are applied"""
