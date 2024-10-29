@@ -223,18 +223,17 @@ def build_conda_environment(db: Session, conda_store, build):
                     ),
                 )
             else:
-                context = action.action_solve_lockfile(
-                    settings.conda_command,
+                context = action.action_solve_lockfile2(
+                    conda_store.locker,
                     specification=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),
                     platforms=settings.conda_solve_platforms,
-                    conda_flags=conda_store.conda_flags,
                     stdout=LoggedStream(
                         db=db,
                         conda_store=conda_store,
                         build=build,
-                        prefix="action_solve_lockfile: ",
+                        prefix="action_solve_lockfile2: ",
                     ),
                 )
 

@@ -12,7 +12,20 @@ from conda_lock.conda_lock import run_lock
 
 from conda_store_server._internal import action, conda_utils, schema, utils
 from conda_store_server._internal.action.utils import logged_command
+from conda_store_server.plugin.v1 import lock
 
+
+
+@action.action
+def action_solve_lockfile2(
+    context,
+    locker_plugin: lock.LockPlugin, 
+    specification: schema.CondaSpecification,
+    platforms: typing.List[str] = [conda_utils.conda_platform()],
+):
+    lockfile_yaml = locker_plugin.lock_environment(specification, platforms)
+    return lockfile_yaml
+    
 
 @action.action
 def action_solve_lockfile(
