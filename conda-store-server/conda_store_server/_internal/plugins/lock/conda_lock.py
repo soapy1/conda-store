@@ -5,6 +5,7 @@
 import json
 import os
 import tempfile
+import pathlib
 
 import yaml
 
@@ -23,15 +24,17 @@ class CondaLock(LockPlugin):
         # TODO: config plugin
         self.conda_command = kwargs.get("conda_command") or "mamba"
         self.conda_flags = kwargs.get("conda_flags") or "--strict-channel-priority"
-        self.workdir = tempfile.TemporaryDirectory()
-        return super().initialize(*args, **kwargs)
+        self.workdir = str(tempfile.TemporaryDirectory())
+        return super().__init__(*args, **kwargs)
 
     def synopsis(self):
         return "Use conda lock to build lock file"
     
     def lock_environment(self, spec, platforms):
-        environment_filename = self.workdir / "environment.yaml"
-        lockfile_filename = self.workdir / "conda-lock.yaml"
+        workdir = pathlib.Path(self.workdir)
+        workdir.mkdir(parents=True)
+        environment_filename = workdir / "environment.yaml"
+        lockfile_filename = workdir / "conda-lock.yaml"
 
         with environment_filename.open("w") as f:
             json.dump(spec.dict(), f)
