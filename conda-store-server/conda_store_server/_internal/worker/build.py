@@ -338,12 +338,11 @@ def solve_conda_environment(db: Session, conda_store, solve: orm.Solve):
     solve.started_on = datetime.datetime.utcnow()
     db.commit()
 
-    context = action.action_solve_lockfile(
-        conda_command=settings.conda_command,
-        specification=schema.CondaSpecification.parse_obj(solve.specification.spec),
+    context = conda_store.locker.lock_environment(
+        spec=schema.CondaSpecification.parse_obj(solve.specification.spec),
         platforms=[conda_utils.conda_platform()],
-        conda_flags=conda_store.conda_flags,
     )
+
     conda_lock_spec = context.result
 
     action.action_add_lockfile_packages(
