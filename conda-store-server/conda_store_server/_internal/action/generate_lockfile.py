@@ -23,9 +23,9 @@ def action_solve_lockfile2(
     specification: schema.CondaSpecification,
     platforms: typing.List[str] = [conda_utils.conda_platform()],
 ):
-    lockfile_yaml = locker_plugin.lock_environment(specification, platforms)
+    lockfile_yaml = locker_plugin.lock_environment(specification, platforms, logger=context.log)
     return lockfile_yaml
-    
+
 
 @action.action
 def action_solve_lockfile(
@@ -37,6 +37,7 @@ def action_solve_lockfile(
     # https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html
     conda_flags: str = "--strict-channel-priority",
 ):
+    context.log.info(f"solving environment without plugin")
     environment_filename = pathlib.Path.cwd() / "environment.yaml"
     lockfile_filename = pathlib.Path.cwd() / "conda-lock.yaml"
 

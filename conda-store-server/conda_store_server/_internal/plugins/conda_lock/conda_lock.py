@@ -30,7 +30,8 @@ class CondaLock(LockPlugin):
     def synopsis(self):
         return "Use conda lock to build lock file"
     
-    def lock_environment(self, spec, platforms):
+    def lock_environment(self, spec, platforms, logger):
+        logger.info("lock_environment entrypoint for conda_lock")
         workdir = pathlib.Path(self.workdir)
         workdir.mkdir(parents=True)
         environment_filename = workdir / "environment.yaml"
@@ -50,6 +51,7 @@ class CondaLock(LockPlugin):
             print(f"{conda_flags_name}={self.conda_flags}")
             os.environ[conda_flags_name] = self.conda_flags
 
+            logger.info("running lock")
             run_lock(
                 environment_files=[environment_filename],
                 platforms=platforms,

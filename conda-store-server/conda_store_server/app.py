@@ -32,7 +32,8 @@ from conda_store_server import exception
 from conda_store_server.plugin.manager import Manager
 from conda_store_server.plugin.v1 import lock
 # HACK: we'll want to discover plugins instead of manually importing and regiestering them
-from conda_store_server._internal.plugins.lock.conda_lock import CondaLock
+from conda_store_server._internal.plugins.conda_lock.conda_lock import CondaLock
+from conda_store_server._internal.plugins.conda_slim_locker.conda_slim_locker import CondaSlimLocker
 
 
 def conda_store_validate_specification(
@@ -492,6 +493,7 @@ class CondaStore(LoggingConfigurable):
         # TODO: register plugins,
         # HACK: manually register lock plugin
         self._plugin_manager.register_plugin(CondaLock)
+        self._plugin_manager.register_plugin(CondaSlimLocker)
 
         return self._plugin_manager
     
