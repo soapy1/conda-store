@@ -3,6 +3,7 @@
 # license that can be found in the LICENSE file.
 
 from conda_store_server.plugin.v1.lock import LockPlugin
+from conda_store_server.plugin.v1.storage import StoragePlugin
 
 
 class Manager():
@@ -21,6 +22,10 @@ class Manager():
     def get_lock_plugins(self):
         """Returns a dict of all registered lock plugins, keyed by the plugin name"""
         return {name: plugin for name, plugin in self.registered.items() if issubclass(plugin, LockPlugin)}
+    
+    def get_storage_plugins(self):
+        """Returns a dict of all registered storage plugins, keyed by the plugin name"""
+        return {name: plugin for name, plugin in self.registered.items() if issubclass(plugin, StoragePlugin)}
     
     def register_plugin(self, p):
         """Adds plugin to the list of registered plugins"""
