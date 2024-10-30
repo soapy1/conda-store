@@ -38,12 +38,8 @@ class CondaLock(LockPlugin):
         context, 
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
-    ):
+    ) -> action_context.ActionContext:
         context.log.info("lock_environment entrypoint for conda_lock")
-        # workdir = pathlib.Path(self.workdir)
-        # workdir.mkdir(parents=True)
-        # environment_filename = workdir / "environment.yaml"
-        # lockfile_filename = workdir / "conda-lock.yaml"
 
         environment_filename = pathlib.Path.cwd() / "environment.yaml"
         lockfile_filename = pathlib.Path.cwd() / "conda-lock.yaml"
