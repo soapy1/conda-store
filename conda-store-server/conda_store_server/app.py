@@ -8,6 +8,7 @@ import sys
 from contextlib import contextmanager
 from typing import Any, Dict
 
+import pluggy
 import pydantic
 from celery import Celery, group
 from sqlalchemy.orm import Session, sessionmaker
@@ -28,6 +29,9 @@ from traitlets.config import LoggingConfigurable
 
 from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
+from conda_store_server.plugins import hookspec
+from conda_store_server.plugins.locker.conda_lock import CondaLock
+from conda_store_server.plugins.locker.slim_lock import SlimLock
 
 
 def conda_store_validate_specification(
@@ -470,6 +474,20 @@ class CondaStore(LoggingConfigurable):
         self._celery_app = Celery("tasks")
         self._celery_app.config_from_object(self.celery_config)
         return self._celery_app
+
+    @property
+    def plugin_manager(self):
+        if hasattr(self, "_plugin_manager"):
+            return self._plugin_manager
+
+        self._plugin_manager = pluggy.PluginManager(hookspec.spec_name)
+        # TODO: register hookcspecs,
+        # HACK: manually register lock plugin
+        self._plugin_manager.add_hookspecs(hookspec.Locker)
+        
+        #TODO: register the configured plugin
+        self._plugin_manager.register(CondaLock())
+        return self._plugin_manager
 
     def ensure_settings(self, db: Session):
         """Ensure that conda-store traitlets settings are applied"""

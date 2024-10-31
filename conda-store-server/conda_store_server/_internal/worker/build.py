@@ -222,34 +222,29 @@ def build_conda_environment(db: Session, conda_store, build):
                         prefix="action_save_lockfile: ",
                     ),
                 )
+                result = context.result
             else:
-                context = action.action_solve_lockfile(
-                    settings.conda_command,
-                    specification=schema.CondaSpecification.parse_obj(
+                result = conda_store.plugin_manager.hook.lock_environment(
+                    spec=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),
                     platforms=settings.conda_solve_platforms,
-                    conda_flags=conda_store.conda_flags,
-                    stdout=LoggedStream(
-                        db=db,
-                        conda_store=conda_store,
-                        build=build,
-                        prefix="action_solve_lockfile: ",
-                    ),
                 )
+
+                result = result[0]
 
             conda_store.storage.set(
                 db,
                 build.id,
                 build.conda_lock_key,
                 json.dumps(
-                    context.result, indent=4, cls=utils.CustomJSONEncoder
+                    result, indent=4, cls=utils.CustomJSONEncoder
                 ).encode("utf-8"),
                 content_type="application/json",
                 artifact_type=schema.BuildArtifactType.LOCKFILE,
             )
 
-            conda_lock_spec = context.result
+            conda_lock_spec = result
 
             context = action.action_fetch_and_extract_conda_packages(
                 conda_lock_spec=conda_lock_spec,
