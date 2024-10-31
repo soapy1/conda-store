@@ -15,8 +15,16 @@ from conda_store_server.plugins import action_context, hookspec
 
 
 class SlimLock():
+    @classmethod
+    def name():
+        "slim-lock"
+
+    def __init__(self, *args, **kwargs):
+        # TODO: config plugin
+        self.conda_command = kwargs.get("conda_command") or "mamba"
+        self.conda_flags = kwargs.get("conda_flags") or "--strict-channel-priority"
+
     @hookspec.hookimpl
-    @action_context.action
     def lock_environment(
         self, 
         context, 

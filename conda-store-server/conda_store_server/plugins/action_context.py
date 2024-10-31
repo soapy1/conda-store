@@ -15,36 +15,6 @@ import uuid
 from conda_store_server._internal import utils
 
 
-def action(f: typing.Callable):
-    @functools.wraps(f)
-    def wrapper(*args, stdout=None, stderr=None, **kwargs):
-        action_context = ActionContext(stdout=stdout, stderr=stderr)
-        with contextlib.ExitStack() as stack:
-            # redirect stdout -> action_context.stdout
-            stack.enter_context(contextlib.redirect_stdout(action_context.stdout))
-
-            # redirect stderr -> action_context.stdout
-            stack.enter_context(contextlib.redirect_stderr(action_context.stdout))
-
-            # create a temporary directory
-            tmpdir = stack.enter_context(tempfile.TemporaryDirectory())
-
-            # enter temporary directory
-            stack.enter_context(utils.chdir(tmpdir))
-
-            start_time = time.monotonic()
-
-            # run function and store result
-            action_context.result = f(*args, **kwargs, context=action_context)
-            action_context.log.info(
-                f"Action {f.__name__} completed in {time.monotonic() - start_time:.3f} s."
-            )
-
-        return action_context
-
-    return wrapper
-
-
 class ActionContext:
     def __init__(self, stdout=None, stderr=None):
         if stdout is not None and stderr is None:

@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from conda_store_server import api
 from conda_store_server._internal import action, conda_utils, orm, schema, utils
-
+from conda_store_server.plugins.action_context import ActionContext
 
 class LoggedStream:
     """Allows writing to storage via logging.StreamHandler"""
@@ -224,7 +224,14 @@ def build_conda_environment(db: Session, conda_store, build):
                 )
                 result = context.result
             else:
+                context = ActionContext(stdout=LoggedStream(
+                        db=db,
+                        conda_store=conda_store,
+                        build=build,
+                        prefix="plugin: ",
+                    ))
                 result = conda_store.plugin_manager.hook.lock_environment(
+                    context=context,
                     spec=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),

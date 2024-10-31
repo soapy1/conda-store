@@ -14,6 +14,10 @@ from conda_store_server._internal import conda_utils, schema
 from conda_store_server.plugins import action_context, hookspec
 
 class CondaLock():
+    @classmethod
+    def name():
+        "conda-lock"
+
     def __init__(self, *args, **kwargs):
         # TODO: config plugin
         self.conda_command = kwargs.get("conda_command") or "mamba"
@@ -22,10 +26,11 @@ class CondaLock():
     @hookspec.hookimpl
     def lock_environment(
         self,
+        context,
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
     ) -> action_context.ActionContext:
-        # context.log.info("lock_environment entrypoint for conda_lock")
+        context.log.info("lock_environment entrypoint for conda_lock")
 
         environment_filename = pathlib.Path.cwd() / "environment.yaml"
         lockfile_filename = pathlib.Path.cwd() / "conda-lock.yaml"
@@ -33,18 +38,18 @@ class CondaLock():
         with environment_filename.open("w") as f:
             json.dump(spec.dict(), f)
 
-        # context.log.info(
-        #     "Note that the output of `conda config --show` displayed below only reflects "
-        #     "settings in the conda configuration file, which might be overridden by "
-        #     "variables required to be set by conda-store via the environment. Overridden "
-        #     f"settings: CONDA_FLAGS={self.conda_flags}"
-        # )
+        context.log.info(
+            "Note that the output of `conda config --show` displayed below only reflects "
+            "settings in the conda configuration file, which might be overridden by "
+            "variables required to be set by conda-store via the environment. Overridden "
+            f"settings: CONDA_FLAGS={self.conda_flags}"
+        )
 
-        # # The info command can be used with either mamba or conda
-        # context.run_command([self.conda_command, "info"])
-        # # The config command is not supported by mamba
-        # context.run_command(["conda", "config", "--show"])
-        # context.run_command(["conda", "config", "--show-sources"])
+        # The info command can be used with either mamba or conda
+        context.run_command([self.conda_command, "info"])
+        # The config command is not supported by mamba
+        context.run_command(["conda", "config", "--show"])
+        context.run_command(["conda", "config", "--show-sources"])
 
         # conda-lock ignores variables defined in the specification, so this code
         # gets the value of CONDA_OVERRIDE_CUDA and passes it to conda-lock via

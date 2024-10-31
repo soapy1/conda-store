@@ -22,7 +22,8 @@ class Locker:
     @hookspec
     def lock_environment(
         self,
+        context: action_context.ActionContext,
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
-    ) -> action_context.ActionContext:
+    ) -> str:
         """Lock spec"""

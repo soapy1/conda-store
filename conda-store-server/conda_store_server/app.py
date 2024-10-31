@@ -483,10 +483,10 @@ class CondaStore(LoggingConfigurable):
         self._plugin_manager = pluggy.PluginManager(hookspec.spec_name)
         # TODO: register hookcspecs,
         # HACK: manually register lock plugin
-        self._plugin_manager.add_hookspecs(hookspec.Locker)
+        # self._plugin_manager.add_hookspecs(hookspec.Locker)
         
         #TODO: register the configured plugin
-        self._plugin_manager.register(CondaLock())
+        # self._plugin_manager.register(CondaLock())
         return self._plugin_manager
 
     def ensure_settings(self, db: Session):

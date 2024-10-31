@@ -222,7 +222,13 @@ def task_build_conda_environment(self, build_id):
 
     with conda_store.session_factory() as db:
         build = api.get_build(db, build_id)
+        # TODO: build task context and register relevant plugins
+        from conda_store_server.plugins.locker.conda_lock import CondaLock
+        from conda_store_server.plugins.locker.slim_lock import SlimLock
+        # HACK: manually registering the desired plugin
+        conda_store.plugin_manager.register(CondaLock(), name=CondaLock.name)
         build_conda_environment(db, conda_store, build)
+        conda_store.plugin_manager.unregister(name=CondaLock.name)
 
 
 @shared_task(base=WorkerTask, name="task_build_conda_env_export", bind=True)
