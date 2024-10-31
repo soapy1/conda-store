@@ -301,6 +301,12 @@ class CondaStore(LoggingConfigurable):
         config=True,
     )
 
+    locker_class = Type(
+        default_value=CondaLock,
+        allow_none=False,
+        config=True,
+    )
+
     @default("celery_broker_url")
     def _default_celery_broker_url(self):
         if self.redis_url is not None:
@@ -481,12 +487,10 @@ class CondaStore(LoggingConfigurable):
             return self._plugin_manager
 
         self._plugin_manager = pluggy.PluginManager(hookspec.spec_name)
-        # TODO: register hookcspecs,
-        # HACK: manually register lock plugin
-        # self._plugin_manager.add_hookspecs(hookspec.Locker)
+        self._plugin_manager.add_hookspecs(hookspec.Locker)
         
         #TODO: register the configured plugin
-        # self._plugin_manager.register(CondaLock())
+        self._plugin_manager.register(self.locker_class())
         return self._plugin_manager
 
     def ensure_settings(self, db: Session):
