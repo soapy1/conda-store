@@ -11,8 +11,8 @@ import yaml
 from conda_lock.conda_lock import run_lock
 
 from conda_store_server._internal import conda_utils, schema
-from conda_store_server.plugins import action_context, hookspec
-
+from conda_store_server.plugins import hookspec
+from conda_store_server.plugins.plugin_context import PluginContext
 
 class SlimLock():
     @classmethod
@@ -23,15 +23,15 @@ class SlimLock():
         # TODO: config plugin
         self.conda_command = kwargs.get("conda_command") or "mamba"
         self.conda_flags = kwargs.get("conda_flags") or "--strict-channel-priority"
-
+    
     @hookspec.hookimpl
     def lock_environment(
-        self, 
-        context, 
+        self,
+        context: PluginContext,
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
-    ) -> action_context.ActionContext:
-        context.log.info("lock_environment entrypoint for conda_slim_lock")
+    ) -> PluginContext:
+        context.log.info("lock_environment entrypoint for slim-lock")
 
         environment_filename = pathlib.Path.cwd() / "environment.yaml"
         lockfile_filename = pathlib.Path.cwd() / "conda-lock.yaml"

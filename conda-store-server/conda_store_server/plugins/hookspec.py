@@ -6,7 +6,7 @@ import pluggy
 import typing
 
 from conda_store_server._internal import conda_utils, schema
-from conda_store_server.plugins import action_context
+from conda_store_server.plugins import plugin_context
 
 
 spec_name = "conda-store-server"
@@ -22,7 +22,7 @@ class Locker:
     @hookspec
     def lock_environment(
         self,
-        context: action_context.ActionContext,
+        context: plugin_context.PluginContext,
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
     ) -> str:

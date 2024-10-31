@@ -11,7 +11,8 @@ import yaml
 from conda_lock.conda_lock import run_lock
 
 from conda_store_server._internal import conda_utils, schema
-from conda_store_server.plugins import action_context, hookspec
+from conda_store_server.plugins import hookspec
+from conda_store_server.plugins.plugin_context import PluginContext
 
 class CondaLock():
     @classmethod
@@ -26,11 +27,11 @@ class CondaLock():
     @hookspec.hookimpl
     def lock_environment(
         self,
-        context,
+        context: PluginContext,
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
-    ) -> action_context.ActionContext:
-        context.log.info("lock_environment entrypoint for conda_lock")
+    ) -> PluginContext:
+        context.log.info("lock_environment entrypoint for slim-lock")
 
         environment_filename = pathlib.Path.cwd() / "environment.yaml"
         lockfile_filename = pathlib.Path.cwd() / "conda-lock.yaml"

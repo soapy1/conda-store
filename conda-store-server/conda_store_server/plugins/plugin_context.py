@@ -2,20 +2,15 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-import contextlib
-import functools
 import io
 import logging
 import subprocess
-import tempfile
-import time
-import typing
 import uuid
 
 from conda_store_server._internal import utils
 
 
-class ActionContext:
+class PluginContext:
     def __init__(self, stdout=None, stderr=None):
         if stdout is not None and stderr is None:
             stderr = stdout
