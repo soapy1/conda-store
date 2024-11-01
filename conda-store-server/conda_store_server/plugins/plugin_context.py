@@ -7,8 +7,6 @@ import logging
 import subprocess
 import uuid
 
-from conda_store_server._internal import utils
-
 
 class PluginContext:
     def __init__(self, stdout=None, stderr=None):

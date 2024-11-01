@@ -491,7 +491,7 @@ class CondaStore(LoggingConfigurable):
         self._plugin_manager.add_hookspecs(hookspec.CondaStoreSpecs)
         
         #TODO: register the configured plugin
-        self._plugin_manager.register(self.locker_class())
+        self._plugin_manager.register(self.locker_class(parent=self, log=self.log))
         # Always load the base storage plugin
         self._plugin_manager.register(BaseStorage(parent=self, log=self.log))
         # TODO: load the right storage plugin

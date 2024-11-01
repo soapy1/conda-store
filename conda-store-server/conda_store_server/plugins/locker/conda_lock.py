@@ -8,22 +8,34 @@ import pathlib
 import typing
 
 import yaml
+
+from traitlets import Unicode
+from traitlets.config import LoggingConfigurable
+
 from conda_lock.conda_lock import run_lock
 
 from conda_store_server._internal import conda_utils, schema
 from conda_store_server.plugins import hookspec
 from conda_store_server.plugins.plugin_context import PluginContext
 
-class CondaLock():
+
+class CondaLock(LoggingConfigurable):
+    conda_flags = Unicode(
+        "--strict-channel-priority",
+        help="The flags to be passed through the CONDA_FLAGS environment variable during the environment build",
+        config=True,
+    )
+
+    conda_command = Unicode(
+        "mamba",
+        help="conda executable to use for solves",
+        config=True,
+    )
+
     @classmethod
     def name():
         "conda-lock"
 
-    def __init__(self, *args, **kwargs):
-        # TODO: config plugin
-        self.conda_command = kwargs.get("conda_command") or "mamba"
-        self.conda_flags = kwargs.get("conda_flags") or "--strict-channel-priority"
-    
     @hookspec.hookimpl
     def lock_environment(
         self,
