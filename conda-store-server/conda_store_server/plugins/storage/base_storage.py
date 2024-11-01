@@ -31,6 +31,10 @@ class BaseStorage(LoggingConfigurable):
             db.add(ba(build_id=build_id, key=key, artifact_type=artifact_type))
             db.commit()
 
+    @classmethod
+    def name(cls):
+        return "base-storage"
+
     @hookspec.hookimpl(trylast=True)
     def storage_set(
         self,

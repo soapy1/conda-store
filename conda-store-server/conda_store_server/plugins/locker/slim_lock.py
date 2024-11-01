@@ -33,8 +33,8 @@ class SlimLock(LoggingConfigurable):
     )
 
     @classmethod
-    def name():
-        "slim-lock"
+    def name(cls):
+        return "slim-lock"
     
     @hookspec.hookimpl
     def lock_environment(

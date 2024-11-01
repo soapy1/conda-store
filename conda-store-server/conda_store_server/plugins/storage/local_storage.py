@@ -30,6 +30,10 @@ class LocalStorage(LoggingConfigurable):
         config=True,
     )
 
+    @classmethod
+    def name(cls):
+        return "local-storage"
+
     @hookspec.hookimpl
     def storage_fset(
         self,

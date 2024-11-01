@@ -33,8 +33,8 @@ class CondaLock(LoggingConfigurable):
     )
 
     @classmethod
-    def name():
-        "conda-lock"
+    def name(cls):
+        return "conda-lock"
 
     @hookspec.hookimpl
     def lock_environment(

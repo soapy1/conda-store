@@ -29,11 +29,11 @@ from traitlets.config import LoggingConfigurable
 
 from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
-from conda_store_server.plugins import hookspec
+from conda_store_server.plugins import hookspec, registration
 from conda_store_server.plugins.locker.conda_lock import CondaLock
 from conda_store_server.plugins.storage.base_storage import BaseStorage
 from conda_store_server.plugins.storage.local_storage import LocalStorage
-
+from conda_store_server.exception import CondaStorePluginNotFoundError
 
 def conda_store_validate_specification(
     db: Session,
@@ -75,9 +75,8 @@ def conda_store_validate_action(
 
 
 class CondaStore(LoggingConfigurable):
-    storage_class = Type(
-        default_value=storage.LocalStorage,
-        klass=storage.Storage,
+    storage_plugin_name = Unicode(
+        default_value="local-storage",
         allow_none=False,
         config=True,
     )
@@ -302,8 +301,8 @@ class CondaStore(LoggingConfigurable):
         config=True,
     )
 
-    locker_class = Type(
-        default_value=CondaLock,
+    locker_plugin_name = Unicode(
+        default_value="conda-lock",
         allow_none=False,
         config=True,
     )
@@ -483,6 +482,15 @@ class CondaStore(LoggingConfigurable):
         return self._celery_app
 
     @property
+    def plugin_registry(self):
+        if hasattr(self, "_plugin_registry"):
+            return self._plugin_registry
+        
+        self._plugin_registry = registration.PluginRegistry()
+        self._plugin_registry.collect_plugins()
+        return self._plugin_registry
+
+    @property
     def plugin_manager(self):
         if hasattr(self, "_plugin_manager"):
             return self._plugin_manager
@@ -490,12 +498,19 @@ class CondaStore(LoggingConfigurable):
         self._plugin_manager = pluggy.PluginManager(hookspec.spec_name)
         self._plugin_manager.add_hookspecs(hookspec.CondaStoreSpecs)
         
-        #TODO: register the configured plugin
-        self._plugin_manager.register(self.locker_class(parent=self, log=self.log))
+        locker_plugin = self.plugin_registry.get_plugin(self.locker_plugin_name)   
+        if locker_plugin is None:
+            raise CondaStorePluginNotFoundError(self.locker_plugin_name, self.plugin_registry.list_plugin_names())     
+        self._plugin_manager.register(locker_plugin(parent=self, log=self.log))
+
+        # Storage plugins are loaded globaly for the application
         # Always load the base storage plugin
         self._plugin_manager.register(BaseStorage(parent=self, log=self.log))
-        # TODO: load the right storage plugin
-        self._plugin_manager.register(LocalStorage(parent=self, log=self.log))
+    
+        storage_plugin = self.plugin_registry.get_plugin(self.storage_plugin_name)   
+        if storage_plugin is None:
+            raise CondaStorePluginNotFoundError(self.storage_plugin_name, self.plugin_registry.list_plugin_names())     
+        self._plugin_manager.register(storage_plugin(parent=self, log=self.log))
 
         return self._plugin_manager
 

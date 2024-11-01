@@ -341,7 +341,8 @@ class CondaStoreServer(Application):
             for path, method, func in self.additional_routes:
                 getattr(app, method)(path, name=func.__name__)(func)
 
-        if isinstance(self.conda_store.storage, storage.LocalStorage):
+        # FIXME: shoudl have a better way to determine if this should happen
+        if self.conda_store.storage_plugin_name == "local-storage":
             self.conda_store.storage.storage_url = (
                 f"{trim_slash(self.url_prefix)}/storage"
             )

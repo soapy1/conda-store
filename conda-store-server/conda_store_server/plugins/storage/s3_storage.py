@@ -81,6 +81,10 @@ class S3Storage(LoggingConfigurable):
         config=True,
     )
 
+    @classmethod
+    def name(cls):
+        return "s3-storage"
+
     @property
     def _credentials(self):
         if self.credentials is None:
