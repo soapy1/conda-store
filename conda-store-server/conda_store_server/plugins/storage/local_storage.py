@@ -45,15 +45,6 @@ class LocalStorage(LoggingConfigurable):
         shutil.copyfile(filename, destination_filename)
 
     @hookspec.hookimpl
-    def stroage_get(self, key):
-        with open(os.path.join(self.storage_path, key), "rb") as f:
-            return f.read()
-
-    @hookspec.hookimpl
-    def stroage_get_url(self, key):
-        return posixpath.join(self.storage_url, key)
-
-    @hookspec.hookimpl
     def storage_set(
         self,
         db,
@@ -67,6 +58,15 @@ class LocalStorage(LoggingConfigurable):
 
         with open(destination_filename, "wb") as f:
             f.write(value)
+
+    @hookspec.hookimpl
+    def storage_get(self, key):
+        with open(os.path.join(self.storage_path, key), "rb") as f:
+            return f.read()
+
+    @hookspec.hookimpl
+    def storage_get_url(self, key):
+        return posixpath.join(self.storage_url, key)
 
     @hookspec.hookimpl
     def storage_delete(self, db, build_id: int, key: str):

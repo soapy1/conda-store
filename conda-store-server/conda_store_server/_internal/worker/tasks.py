@@ -290,7 +290,7 @@ def delete_build_artifact(db: Session, conda_store, build_artifact):
         # conda_store.container_registry.delete_image(build_artifact.key)
     else:
         conda_store.log.info(f"deleting {build_artifact.key}")
-        conda_store.storage.delete(db, build_artifact.build.id, build_artifact.key)
+        conda_store.plugin_manager.hook.storage_delete(db=db, build_id=build_artifact.build.id, key=build_artifact.key)
 
 
 @shared_task(base=WorkerTask, name="task_delete_build", bind=True)

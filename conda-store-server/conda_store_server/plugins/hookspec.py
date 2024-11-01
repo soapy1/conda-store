@@ -60,7 +60,7 @@ class CondaStoreSpecs:
         """Get an artifact from storage"""
     
     @hookspec(firstresult=True)
-    def storage_url(
+    def storage_get_url(
         self,
         key: str,
     ) -> str:

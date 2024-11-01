@@ -169,7 +169,7 @@ class S3Storage(LoggingConfigurable):
         return response.read()
         
     @hookspec.hookimpl
-    def stroage_get_url(self, key):
+    def storage_get_url(self, key):
         return self.external_client.presigned_get_object(self.bucket_name, key)
        
     @hookspec.hookimpl

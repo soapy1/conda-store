@@ -1175,7 +1175,7 @@ async def api_get_build_logs(
             require=True,
         )
 
-        return RedirectResponse(conda_store.storage.get_url(build.log_key))
+        return RedirectResponse(conda_store.plugin_manager.hook.storage_get_url(key=build.log_key))
 
 
 @router_api.get(
@@ -1255,7 +1255,7 @@ async def api_get_build_yaml(
             {Permissions.ENVIRONMENT_READ},
             require=True,
         )
-        return RedirectResponse(conda_store.storage.get_url(build.conda_env_export_key))
+        return RedirectResponse(conda_store.plugin_manager.hook.storage_get_url(key=build.conda_env_export_key))
 
 
 @router_api.get(
@@ -1319,7 +1319,7 @@ async def api_get_build_lockfile(
         if any(ba.key == "" for ba in build_artifacts):
             return api.get_build_lockfile_legacy(db, build_id)
 
-        return RedirectResponse(conda_store.storage.get_url(build.conda_lock_key))
+        return RedirectResponse(conda_store.plugin_manager.hook.storage_get_url(key=build.conda_lock_key))
 
 
 @router_api.get("/build/{build_id}/archive/")
@@ -1338,7 +1338,7 @@ async def api_get_build_archive(
             require=True,
         )
 
-        return RedirectResponse(conda_store.storage.get_url(build.conda_pack_key))
+        return RedirectResponse(conda_store.plugin_manager.hook.storage_get_url(key=build.conda_pack_key))
 
 
 @router_api.get("/build/{build_id}/docker/")
@@ -1387,7 +1387,7 @@ async def api_get_build_installer(
 
         if build.has_constructor_installer:
             return RedirectResponse(
-                conda_store.storage.get_url(build.constructor_installer_key)
+                conda_store.plugin_manager.hook.storage_get_url(key=build.constructor_installer_key)
             )
 
         else:

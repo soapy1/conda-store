@@ -48,7 +48,7 @@ def append_to_logs(db: Session, conda_store, build, logs: typing.Union[str, byte
     # attempt to write to a shared resource, which is the log
     with FileLock(f"{build.build_path(conda_store)}.log.lock"):
         try:
-            current_logs = conda_store.storage.get(build.log_key)
+            current_logs = conda_store.plugin_manager.hook.storage_get(key=build.log_key)
         except Exception:
             current_logs = b""
 
@@ -240,11 +240,11 @@ def build_conda_environment(db: Session, conda_store, build):
 
                 result = result[0]
 
-            conda_store.storage.set(
-                db,
-                build.id,
-                build.conda_lock_key,
-                json.dumps(
+            conda_store.plugin_manager.hook.storage_set(
+                db=db,
+                build_id=build.id,
+                key=build.conda_lock_key,
+                value=json.dumps(
                     result, indent=4, cls=utils.CustomJSONEncoder
                 ).encode("utf-8"),
                 content_type="application/json",
@@ -381,11 +381,11 @@ def build_conda_env_export(db: Session, conda_store, build: orm.Build):
 
     conda_prefix_export = yaml.dump(context.result).encode("utf-8")
 
-    conda_store.storage.set(
-        db,
-        build.id,
-        build.conda_env_export_key,
-        conda_prefix_export,
+    conda_store.plugin_manager.hook.storage_set(
+        db=db,
+        build_id=build.id,
+        key=build.conda_env_export_key,
+        value=conda_prefix_export,
         content_type="text/yaml",
         artifact_type=schema.BuildArtifactType.YAML,
     )
@@ -409,11 +409,11 @@ def build_conda_pack(db: Session, conda_store, build: orm.Build):
                     prefix="action_generate_conda_pack: ",
                 ),
             )
-            conda_store.storage.fset(
-                db,
-                build.id,
-                build.conda_pack_key,
-                output_filename,
+            conda_store.plugin_manager.hook.storage_fset(
+                db=db,
+                build_id=build.id,
+                key=build.conda_pack_key,
+                filename=output_filename,
                 content_type="application/gzip",
                 artifact_type=schema.BuildArtifactType.CONDA_PACK,
             )
@@ -502,7 +502,7 @@ def build_constructor_installer(db: Session, conda_store, build: orm.Build):
                         {
                             "name": build.specification.name,
                             "lockfile": json.loads(
-                                conda_store.storage.get(build.conda_lock_key)
+                                conda_store.plugin_manager.hook.storage_get(key=build.conda_lock_key)
                             ),
                         }
                     )
@@ -532,11 +532,11 @@ def build_constructor_installer(db: Session, conda_store, build: orm.Build):
             output_filename = context.result
             if output_filename is None:
                 return
-            conda_store.storage.fset(
-                db,
-                build.id,
-                build.constructor_installer_key,
-                output_filename,
+            conda_store.plugin_manager.hook.storage_fset(
+                db=db,
+                build_id=build.id,
+                key=build.constructor_installer_key,
+                value=output_filename,
                 content_type="application/octet-stream",
                 artifact_type=schema.BuildArtifactType.CONSTRUCTOR_INSTALLER,
             )
