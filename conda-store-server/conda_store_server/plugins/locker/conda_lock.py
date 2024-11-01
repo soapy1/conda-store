@@ -31,7 +31,7 @@ class CondaLock():
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
     ) -> PluginContext:
-        context.log.info("lock_environment entrypoint for slim-lock")
+        context.log.info("lock_environment entrypoint for conda-lock")
 
         environment_filename = pathlib.Path.cwd() / "environment.yaml"
         lockfile_filename = pathlib.Path.cwd() / "conda-lock.yaml"

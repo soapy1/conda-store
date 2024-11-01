@@ -35,6 +35,7 @@ class CondaStoreSpecs:
         build_id: int,
         key: str,
         filename: str,
+        content_type: str,
         artifact_type: schema.BuildArtifactType,
     ) -> str:
         """Upload file to storage"""
@@ -46,18 +47,19 @@ class CondaStoreSpecs:
         build_id: int,
         key: str,
         value: bytes,
+        content_type: str,
         artifact_type: schema.BuildArtifactType,
     ) -> str:
         """Upload blob to storage"""
 
-    @hookspec
+    @hookspec(firstresult=True)
     def storage_get(
         self,
         key: str,
     ) -> str:
         """Get an artifact from storage"""
     
-    @hookspec
+    @hookspec(firstresult=True)
     def storage_url(
         self,
         key: str,

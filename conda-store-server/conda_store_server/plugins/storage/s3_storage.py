@@ -137,11 +137,31 @@ class S3Storage(LoggingConfigurable):
         build_id: int,
         key: str,
         filename: str,
-        artifact_type: schema.BuildArtifactType,
+        content_type=None,
+        artifact_type=None,
     ):
         self.internal_client.fput_object(
             self.bucket_name, key, filename, content_type=content_type
         )
+
+    @hookspec.hookimpl
+    def storage_set(
+        self,
+        db,
+        build_id: int,
+        key: str,
+        value: bytes,
+        content_type=None,
+        artifact_type=None
+    ):
+        self.internal_client.put_object(
+            self.bucket_name,
+            key,
+            io.BytesIO(value),
+            length=len(value),
+            content_type=content_type,
+        )
+
 
     @hookspec.hookimpl
     def storage_get(self, key):
@@ -151,27 +171,7 @@ class S3Storage(LoggingConfigurable):
     @hookspec.hookimpl
     def stroage_get_url(self, key):
         return self.external_client.presigned_get_object(self.bucket_name, key)
-
-    @hookspec.hookimpl
-    def storage_set(
-        self,
-        db,
-        build_id: int,
-        key: str,
-        value: bytes,
-        artifact_type: schema.BuildArtifactType,
-    ):
-        self.internal_client.put_object(
-            self.bucket_name,
-            key,
-            io.BytesIO(value),
-            length=len(value),
-            content_type=content_type,
-        )
-        super().fset(db, build_id, key, value, artifact_type)
-
        
     @hookspec.hookimpl
     def storage_delete(self, db, build_id: int, key: str):
         self.internal_client.remove_object(self.bucket_name, key)
-        super().delete(db, build_id, key)

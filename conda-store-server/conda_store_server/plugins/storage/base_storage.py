@@ -32,7 +32,7 @@ class BaseStorage(LoggingConfigurable):
             db.commit()
 
     @hookspec.hookimpl
-    def storage_sset(
+    def storage_set(
         self,
         db,
         build_id: int,
