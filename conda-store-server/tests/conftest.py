@@ -342,11 +342,11 @@ def _create_build_packages(db: Session, conda_store, build: orm.Build):
 
 
 def _create_build_artifacts(db: Session, conda_store, build: orm.Build):
-    conda_store.storage.set(
-        db,
-        build.id,
-        build.log_key,
-        b"fake logs",
+    conda_store.plugin_manager.hook.storage_set(
+        db=db,
+        build_id=build.id,
+        key=build.log_key,
+        value=b"fake logs",
         content_type="text/plain",
         artifact_type=schema.BuildArtifactType.LOGS,
     )
@@ -363,22 +363,22 @@ def _create_build_artifacts(db: Session, conda_store, build: orm.Build):
     )
     db.add(lockfile_build_artifact)
 
-    conda_store.storage.set(
-        db,
-        build.id,
-        build.conda_env_export_key,
-        json.dumps(
+    conda_store.plugin_manager.hook.storage_set(
+        db=db,
+        build_id=build.id,
+        key=build.conda_env_export_key,
+        value=json.dumps(
             dict(name="testing", channels=["conda-forge"], dependencies=["numpy"])
         ).encode("utf-8"),
         content_type="text/yaml",
         artifact_type=schema.BuildArtifactType.YAML,
     )
 
-    conda_store.storage.set(
-        db,
-        build.id,
-        build.conda_pack_key,
-        b"testing-conda-package",
+    conda_store.plugin_manager.hook.storage_set(
+        db=db,
+        build_id=build.id,
+        key=build.conda_pack_key,
+        value=b"testing-conda-package",
         content_type="application/gzip",
         artifact_type=schema.BuildArtifactType.CONDA_PACK,
     )
