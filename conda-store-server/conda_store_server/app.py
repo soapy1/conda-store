@@ -31,7 +31,6 @@ from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
 from conda_store_server.plugins import hookspec
 from conda_store_server.plugins.locker.conda_lock import CondaLock
-from conda_store_server.plugins.locker.slim_lock import SlimLock
 
 
 def conda_store_validate_specification(
@@ -487,7 +486,7 @@ class CondaStore(LoggingConfigurable):
             return self._plugin_manager
 
         self._plugin_manager = pluggy.PluginManager(hookspec.spec_name)
-        self._plugin_manager.add_hookspecs(hookspec.Locker)
+        self._plugin_manager.add_hookspecs(hookspec.CondaStoreSpecs)
         
         #TODO: register the configured plugin
         self._plugin_manager.register(self.locker_class())

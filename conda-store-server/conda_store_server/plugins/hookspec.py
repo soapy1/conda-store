@@ -16,8 +16,8 @@ hookspec = pluggy.HookspecMarker(spec_name)
 hookimpl = pluggy.HookimplMarker(spec_name)
 
 
-class Locker:
-    """Given specs, create a lockfile spec"""
+class CondaStoreSpecs:
+    """Conda Store hookspecs"""
 
     @hookspec
     def lock_environment(
@@ -27,3 +27,48 @@ class Locker:
         platforms: typing.List[str] = [conda_utils.conda_platform()],
     ) -> str:
         """Lock spec"""
+
+    @hookspec
+    def storage_fset(
+        self,
+        db,
+        build_id: int,
+        key: str,
+        filename: str,
+        artifact_type: schema.BuildArtifactType,
+    ) -> str:
+        """Upload file to storage"""
+
+    @hookspec
+    def storage_set(
+        self,
+        db,
+        build_id: int,
+        key: str,
+        value: bytes,
+        artifact_type: schema.BuildArtifactType,
+    ) -> str:
+        """Upload blob to storage"""
+
+    @hookspec
+    def storage_get(
+        self,
+        key: str,
+    ) -> str:
+        """Get an artifact from storage"""
+    
+    @hookspec
+    def storage_url(
+        self,
+        key: str,
+    ) -> str:
+        """Get an artifact url from storage"""
+
+    @hookspec
+    def delete(
+        self,
+        db, 
+        build_id: int, 
+        key: str
+    ) -> str:
+        """Delete an artifact from storage"""
