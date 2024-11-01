@@ -10,7 +10,7 @@ from conda_store_server.plugins import hookspec
 
 
 class BaseStorage(LoggingConfigurable):
-    @hookspec.hookimpl
+    @hookspec.hookimpl(trylast=True)
     def storage_fset(
         self,
         db,
@@ -31,7 +31,7 @@ class BaseStorage(LoggingConfigurable):
             db.add(ba(build_id=build_id, key=key, artifact_type=artifact_type))
             db.commit()
 
-    @hookspec.hookimpl
+    @hookspec.hookimpl(trylast=True)
     def storage_set(
         self,
         db,
@@ -52,7 +52,7 @@ class BaseStorage(LoggingConfigurable):
             db.add(ba(build_id=build_id, key=key, artifact_type=artifact_type))
             db.commit()
 
-    @hookspec.hookimpl
+    @hookspec.hookimpl(trylast=True)
     def storage_delete(self, db, build_id: int, key: str):
         build_artifact = api.get_build_artifact(db, build_id, key)
         db.delete(build_artifact)

@@ -137,8 +137,8 @@ class S3Storage(LoggingConfigurable):
         build_id: int,
         key: str,
         filename: str,
-        content_type=None,
-        artifact_type=None,
+        content_type: str,
+        artifact_type: schema.BuildArtifactType
     ):
         self.internal_client.fput_object(
             self.bucket_name, key, filename, content_type=content_type
@@ -151,8 +151,8 @@ class S3Storage(LoggingConfigurable):
         build_id: int,
         key: str,
         value: bytes,
-        content_type=None,
-        artifact_type=None
+        content_type: str,
+        artifact_type: schema.BuildArtifactType
     ):
         self.internal_client.put_object(
             self.bucket_name,
