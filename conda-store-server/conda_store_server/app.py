@@ -31,6 +31,8 @@ from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
 from conda_store_server.plugins import hookspec
 from conda_store_server.plugins.locker.conda_lock import CondaLock
+from conda_store_server.plugins.storage.base_storage import BaseStorage
+from conda_store_server.plugins.storage.s3_storage import S3Storage
 
 
 def conda_store_validate_specification(
@@ -490,6 +492,11 @@ class CondaStore(LoggingConfigurable):
         
         #TODO: register the configured plugin
         self._plugin_manager.register(self.locker_class())
+        # Always load the base storage plugin
+        self._plugin_manager.register(BaseStorage(parent=self, log=self.log))
+        # TODO: load the right storage plugin
+        self._plugin_manager.register(S3Storage(parent=self, log=self.log))
+
         return self._plugin_manager
 
     def ensure_settings(self, db: Session):

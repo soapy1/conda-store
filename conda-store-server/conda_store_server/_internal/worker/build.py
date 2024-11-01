@@ -60,11 +60,11 @@ def append_to_logs(db: Session, conda_store, build, logs: typing.Union[str, byte
         elif logs is None:
             logs = b""
 
-        conda_store.storage.set(
-            db,
-            build.id,
-            build.log_key,
-            current_logs + logs,
+        conda_store.plugin_manager.hook.storage_set(
+            db=db,
+            build_id=build.id,
+            key=build.log_key,
+            value=current_logs + logs,
             content_type="text/plain",
             artifact_type=schema.BuildArtifactType.LOGS,
         )
