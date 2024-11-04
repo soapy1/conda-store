@@ -12,13 +12,9 @@ def build_task(fn: typing.Callable):
     @functools.wraps(fn)
     def wrapper(*args, conda_store, db, namespace=None, environment=None, **kwargs):
         build_context = BuildContext(db, conda_store, namespace, environment)
-        # TODO: register all appropriate plugins
-        build_context.register_lock_plugin()
-        
+        build_context.register_build_time_plugins()
         fn(build_context, *args, **kwargs)
-
-        # TODO: clean up all plugins that were registered
-        build_context.unregister_lock_plugin()
+        build_context.unregister_build_time_plugins()
 
     return wrapper
 
@@ -35,19 +31,15 @@ class BuildContext():
             environment_name=environment_name,
         )
 
-    def register_lock_plugin(self):
-        locker_plugin_name = self.conda_store.locker_plugin_name
-        locker_plugin = self.conda_store.plugin_registry.get_plugin(locker_plugin_name)   
-        if locker_plugin is None:
-            raise CondaStorePluginNotFoundError(self.conda_store.locker_plugin_name, self.conda_store.plugin_registry.list_plugin_names())     
-        self.conda_store.plugin_manager.register(
-            locker_plugin(
-                conda_command=self.settings.conda_command,
-                conda_flags=self.conda_store.conda_flags),
-            name=locker_plugin_name
+    def register_build_time_plugins(self):
+        self.conda_store.load_plugin_by_name(
+            self.conda_store.locker_plugin_name, 
+            conda_command=self.settings.conda_command,
+            conda_flags=self.conda_store.conda_flags
         )
+       
 
-    def unregister_lock_plugin(self):
+    def unregister_build_time_plugins(self):
         self.conda_store.plugin_manager.unregister(
             name=self.conda_store.locker_plugin_name
         )
