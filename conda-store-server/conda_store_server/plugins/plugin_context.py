@@ -11,9 +11,9 @@ import uuid
 class PluginContext:
     """The plugin context provides some useful attributes to a hook.
 
-    This includes log, stdout, stderr, run_command
+    This includes conda_store, log, stdout, stderr, run_command
     """
-    def __init__(self, stdout=None, stderr=None):
+    def __init__(self, conda_store=None, stdout=None, stderr=None):
         if stdout is not None and stderr is None:
             stderr = stdout
 
@@ -24,6 +24,7 @@ class PluginContext:
         self.log.propagate = False
         self.log.addHandler(logging.StreamHandler(stream=self.stdout))
         self.log.setLevel(logging.INFO)
+        self.conda_store = conda_store
 
     def run_command(self, command, redirect_stderr=True, **kwargs):
         """Runs command and immediately writes to logs"""

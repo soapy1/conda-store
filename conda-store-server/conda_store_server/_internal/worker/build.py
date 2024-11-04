@@ -222,12 +222,15 @@ def build_conda_environment(build_context, build):
                 result = context.result
             else:
                 result = build_context.conda_store.plugin_manager.hook.lock_environment(
-                    context=PluginContext(stdout=LoggedStream(
-                        db=build_context.db,
+                    context=PluginContext(
                         conda_store=build_context.conda_store,
-                        build=build,
-                        prefix="hook-lock_environment: ",
-                    )),
+                        stdout=LoggedStream(
+                            db=build_context.db,
+                            conda_store=build_context.conda_store,
+                            build=build,
+                            prefix="hook-lock_environment: ",
+                        )
+                    ),
                     spec=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),
@@ -351,7 +354,6 @@ def solve_conda_environment(build_context, solve: orm.Solve):
     build_context.db.commit()
 
 
-# TODO: replace with artifact plugin
 @build_context.build_task
 def build_conda_env_export(build_context, build: orm.Build):
     conda_prefix = build.build_path(build_context.conda_store)
@@ -379,7 +381,6 @@ def build_conda_env_export(build_context, build: orm.Build):
     )
 
 
-# TODO: replace with artifact plugin
 @build_context.build_task
 def build_conda_pack(build_context, build: orm.Build):
     conda_prefix = build.build_path(build_context.conda_store)
@@ -409,7 +410,6 @@ def build_conda_pack(build_context, build: orm.Build):
             )
 
 
-# TODO: replace with artifact plugin
 @build_context.build_task
 def build_conda_docker(build_context, build: orm.Build):
     import warnings
@@ -466,7 +466,6 @@ def build_conda_docker(build_context, build: orm.Build):
 
 
 
-# TODO: replace with artifact plugin
 @build_context.build_task
 def build_constructor_installer(build_context, build: orm.Build):
     conda_prefix = build.build_path(build_context.conda_store)
