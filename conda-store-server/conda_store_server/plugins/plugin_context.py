@@ -9,6 +9,10 @@ import uuid
 
 
 class PluginContext:
+    """The plugin context provides some useful attributes to a hook.
+
+    This includes log, stdout, stderr, run_command
+    """
     def __init__(self, stdout=None, stderr=None):
         if stdout is not None and stderr is None:
             stderr = stdout
@@ -16,12 +20,10 @@ class PluginContext:
         self.id = str(uuid.uuid4())
         self.stdout = stdout if stdout is not None else io.StringIO()
         self.stderr = stderr if stderr is not None else io.StringIO()
-        self.log = logging.getLogger(f"conda_store_server._internal.action.{self.id}")
+        self.log = logging.getLogger(f"conda_store_server.plugins.plugin_context.{self.id}")
         self.log.propagate = False
         self.log.addHandler(logging.StreamHandler(stream=self.stdout))
         self.log.setLevel(logging.INFO)
-        self.result = None
-        self.artifacts = {}
 
     def run_command(self, command, redirect_stderr=True, **kwargs):
         """Runs command and immediately writes to logs"""

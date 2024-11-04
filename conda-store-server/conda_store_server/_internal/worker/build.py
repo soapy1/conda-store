@@ -224,21 +224,18 @@ def build_conda_environment(db: Session, conda_store, build):
                 )
                 result = context.result
             else:
-                context = PluginContext(stdout=LoggedStream(
+                result = conda_store.plugin_manager.hook.lock_environment(
+                    context=PluginContext(stdout=LoggedStream(
                         db=db,
                         conda_store=conda_store,
                         build=build,
-                        prefix="plugin: ",
-                    ))
-                result = conda_store.plugin_manager.hook.lock_environment(
-                    context=context,
+                        prefix="hook-lock_environment: ",
+                    )),
                     spec=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),
                     platforms=settings.conda_solve_platforms,
                 )
-
-                result = result[0]
 
             conda_store.plugin_manager.hook.storage_set(
                 db=db,

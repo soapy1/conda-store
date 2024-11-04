@@ -19,7 +19,7 @@ hookimpl = pluggy.HookimplMarker(spec_name)
 class CondaStoreSpecs:
     """Conda Store hookspecs"""
 
-    @hookspec
+    @hookspec(firstresult=True)
     def lock_environment(
         self,
         context: plugin_context.PluginContext,
