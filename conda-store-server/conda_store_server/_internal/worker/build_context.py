@@ -10,7 +10,7 @@ from conda_store_server.exception import CondaStorePluginNotFoundError
 
 def build_task(fn: typing.Callable):
     @functools.wraps(fn)
-    def wrapper(*args, conda_store, db, namespace, environment, **kwargs):
+    def wrapper(*args, conda_store, db, namespace=None, environment=None, **kwargs):
         build_context = BuildContext(db, conda_store, namespace, environment)
         # TODO: register all appropriate plugins
         build_context.register_lock_plugin()
@@ -24,7 +24,7 @@ def build_task(fn: typing.Callable):
 
 
 class BuildContext():
-    def __init__(self, db, conda_store, namespace, environment_name):
+    def __init__(self, db, conda_store, namespace=None, environment_name=None):
         self.db = db
         self.conda_store = conda_store
         self.namespace = namespace

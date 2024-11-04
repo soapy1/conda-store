@@ -330,44 +330,40 @@ def build_conda_environment(build_context, build):
         raise e
 
 
-def solve_conda_environment(db: Session, conda_store, solve: orm.Solve):
-    settings = conda_store.get_settings(db=db)
-
+@build_context.build_task
+def solve_conda_environment(build_context, solve: orm.Solve):
     solve.started_on = datetime.datetime.utcnow()
-    db.commit()
+    build_context.db.commit()
 
     context = action.action_solve_lockfile(
-        conda_command=settings.conda_command,
+        conda_command=build_context.settings.conda_command,
         specification=schema.CondaSpecification.parse_obj(solve.specification.spec),
         platforms=[conda_utils.conda_platform()],
-        conda_flags=conda_store.conda_flags,
+        conda_flags=build_context.conda_store.conda_flags,
     )
     conda_lock_spec = context.result
 
     action.action_add_lockfile_packages(
-        db=db,
+        db=build_context.db,
         conda_lock_spec=conda_lock_spec,
         solve_id=solve.id,
     )
 
     solve.ended_on = datetime.datetime.utcnow()
-    db.commit()
+    build_context.db.commit()
 
 
-def build_conda_env_export(db: Session, conda_store, build: orm.Build):
-    conda_prefix = build.build_path(conda_store)
-    settings = conda_store.get_settings(
-        db=db,
-        namespace=build.environment.namespace.name,
-        environment_name=build.environment.name,
-    )
+# TODO: replace with artifact plugin
+@build_context.build_task
+def build_conda_env_export(build_context, build: orm.Build):
+    conda_prefix = build.build_path(build_context.conda_store)
 
     context = action.action_generate_conda_export(
-        conda_command=settings.conda_command,
+        conda_command=build_context.settings.conda_command,
         conda_prefix=conda_prefix,
         stdout=LoggedStream(
-            db=db,
-            conda_store=conda_store,
+            db=build_context.db,
+            conda_store=build_context.conda_store,
             build=build,
             prefix="action_generate_conda_export: ",
         ),
@@ -375,8 +371,8 @@ def build_conda_env_export(db: Session, conda_store, build: orm.Build):
 
     conda_prefix_export = yaml.dump(context.result).encode("utf-8")
 
-    conda_store.plugin_manager.hook.storage_set(
-        db=db,
+    build_context.conda_store.plugin_manager.hook.storage_set(
+        db=build_context.db,
         build_id=build.id,
         key=build.conda_env_export_key,
         value=conda_prefix_export,
@@ -385,11 +381,13 @@ def build_conda_env_export(db: Session, conda_store, build: orm.Build):
     )
 
 
-def build_conda_pack(db: Session, conda_store, build: orm.Build):
-    conda_prefix = build.build_path(conda_store)
+# TODO: replace with artifact plugin
+@build_context.build_task
+def build_conda_pack(build_context, build: orm.Build):
+    conda_prefix = build.build_path(build_context.conda_store)
 
     with utils.timer(
-        conda_store.log, f"packaging archive of conda environment={conda_prefix}"
+        build_context.conda_store.log, f"packaging archive of conda environment={conda_prefix}"
     ):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_filename = pathlib.Path(tmpdir) / "environment.tar.gz"
@@ -397,14 +395,14 @@ def build_conda_pack(db: Session, conda_store, build: orm.Build):
                 conda_prefix=conda_prefix,
                 output_filename=output_filename,
                 stdout=LoggedStream(
-                    db=db,
-                    conda_store=conda_store,
+                    db=build_context.db,
+                    conda_store=build_context.conda_store,
                     build=build,
                     prefix="action_generate_conda_pack: ",
                 ),
             )
-            conda_store.plugin_manager.hook.storage_fset(
-                db=db,
+            build_context.conda_store.plugin_manager.hook.storage_fset(
+                db=build_context.db,
                 build_id=build.id,
                 key=build.conda_pack_key,
                 filename=output_filename,
@@ -413,7 +411,9 @@ def build_conda_pack(db: Session, conda_store, build: orm.Build):
             )
 
 
-def build_conda_docker(db: Session, conda_store, build: orm.Build):
+# TODO: replace with artifact plugin
+@build_context.build_task
+def build_conda_docker(build_context, build: orm.Build):
     import warnings
 
     warnings.warn(
@@ -467,17 +467,20 @@ def build_conda_docker(db: Session, conda_store, build: orm.Build):
         raise e
 
 
-def build_constructor_installer(db: Session, conda_store, build: orm.Build):
-    conda_prefix = build.build_path(conda_store)
 
-    settings = conda_store.get_settings(
-        db=db,
+# TODO: replace with artifact plugin
+@build_context.build_task
+def build_constructor_installer(build_context, build: orm.Build):
+    conda_prefix = build.build_path(build_context.conda_store)
+
+    settings = build_context.conda_store.get_settings(
+        db=build_context.db,
         namespace=build.environment.namespace.name,
         environment_name=build.environment.name,
     )
 
     with utils.timer(
-        conda_store.log, f"creating installer for conda environment={conda_prefix}"
+        build_context.conda_store.log, f"creating installer for conda environment={conda_prefix}"
     ):
         with tempfile.TemporaryDirectory() as tmpdir:
             is_lockfile = build.specification.is_lockfile
@@ -496,13 +499,13 @@ def build_constructor_installer(db: Session, conda_store, build: orm.Build):
                         {
                             "name": build.specification.name,
                             "lockfile": json.loads(
-                                conda_store.plugin_manager.hook.storage_get(key=build.conda_lock_key)
+                               build_context.conda_store.plugin_manager.hook.storage_get(key=build.conda_lock_key)
                             ),
                         }
                     )
                     is_lockfile = True
                 except Exception as e:
-                    conda_store.log.warning(
+                    build_context.conda_store.log.warning(
                         "Exception while obtaining lockfile, using specification",
                         exc_info=e,
                     )
@@ -516,8 +519,8 @@ def build_constructor_installer(db: Session, conda_store, build: orm.Build):
                 installer_dir=pathlib.Path(tmpdir),
                 version=build.build_key,
                 stdout=LoggedStream(
-                    db=db,
-                    conda_store=conda_store,
+                    db=build_context.db,
+                    conda_store=build_context.conda_store,
                     build=build,
                     prefix="action_generate_constructor_installer: ",
                 ),
@@ -526,8 +529,8 @@ def build_constructor_installer(db: Session, conda_store, build: orm.Build):
             output_filename = context.result
             if output_filename is None:
                 return
-            conda_store.plugin_manager.hook.storage_fset(
-                db=db,
+            build_context.conda_store.plugin_manager.hook.storage_fset(
+                db=build_context.db,
                 build_id=build.id,
                 key=build.constructor_installer_key,
                 value=output_filename,
