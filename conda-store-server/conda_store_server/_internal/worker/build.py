@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from conda_store_server import api
 from conda_store_server._internal import action, conda_utils, orm, schema, utils
 from conda_store_server.plugins.plugin_context import PluginContext
-from conda_store_server.exception import CondaStorePluginNotFoundError
+from conda_store_server._internal.worker import build_context
 
 
 class LoggedStream:
@@ -180,87 +180,62 @@ or error in conda-store
                 set_build_failed(db, build)
 
 
-def execute_build_task(fn, conda_store, db, build):
-    settings = conda_store.get_settings(
-        db=db,
-        namespace=build.environment.namespace.name,
-        environment_name=build.environment.name,
-    )
-
-    locker_plugin_name = conda_store.locker_plugin_name
-    locker_plugin = conda_store.plugin_registry.get_plugin(locker_plugin_name)   
-    if locker_plugin is None:
-        raise CondaStorePluginNotFoundError(conda_store.locker_plugin_name, conda_store.plugin_registry.list_plugin_names())     
-    conda_store.plugin_manager.register(
-        locker_plugin(conda_command=settings.conda_command, conda_flags=conda_store.conda_flags),
-        name=locker_plugin_name
-    )
-
-    fn(db=db, conda_store=conda_store, build=build)
-
-    conda_store.plugin_manager.unregister(name=locker_plugin_name)
-
-def build_conda_environment(db: Session, conda_store, build):
+@build_context.build_task
+def build_conda_environment(build_context, build):
     """Build a conda environment with set uid/gid/and permissions and
     symlink the build to a named environment
 
     """
     try:
-        set_build_started(db, build)
+        set_build_started(build_context.db, build)
         # Note: even append_to_logs can fail due to filename size limit, so
         # check build_path length first
-        conda_prefix = build.build_path(conda_store)
+        conda_prefix = build.build_path(build_context.conda_store)
         append_to_logs(
-            db,
-            conda_store,
+            build_context.db,
+            build_context.conda_store,
             build,
             f"starting build of conda environment {datetime.datetime.utcnow()} UTC\n",
         )
 
-        settings = conda_store.get_settings(
-            db=db,
-            namespace=build.environment.namespace.name,
-            environment_name=build.environment.name,
-        )
-
         conda_prefix.parent.mkdir(parents=True, exist_ok=True)
 
-        environment_prefix = build.environment_path(conda_store)
+        environment_prefix = build.environment_path(build_context.conda_store)
         if environment_prefix is not None:
             environment_prefix.parent.mkdir(parents=True, exist_ok=True)
 
         is_lockfile = build.specification.is_lockfile
 
-        with utils.timer(conda_store.log, f"building conda_prefix={conda_prefix}"):
+        with utils.timer(build_context.conda_store.log, f"building conda_prefix={conda_prefix}"):
             if is_lockfile:
                 context = action.action_save_lockfile(
                     specification=schema.LockfileSpecification.parse_obj(
                         build.specification.spec
                     ),
                     stdout=LoggedStream(
-                        db=db,
-                        conda_store=conda_store,
+                        db=build_context.db,
+                        conda_store=build_context.conda_store,
                         build=build,
                         prefix="action_save_lockfile: ",
                     ),
                 )
                 result = context.result
             else:
-                result = conda_store.plugin_manager.hook.lock_environment(
+                result = build_context.conda_store.plugin_manager.hook.lock_environment(
                     context=PluginContext(stdout=LoggedStream(
-                        db=db,
-                        conda_store=conda_store,
+                        db=build_context.db,
+                        conda_store=build_context.conda_store,
                         build=build,
                         prefix="hook-lock_environment: ",
                     )),
                     spec=schema.CondaSpecification.parse_obj(
                         build.specification.spec
                     ),
-                    platforms=settings.conda_solve_platforms,
+                    platforms=build_context.settings.conda_solve_platforms,
                 )
 
-            conda_store.plugin_manager.hook.storage_set(
-                db=db,
+            build_context.conda_store.plugin_manager.hook.storage_set(
+                db=build_context.db,
                 build_id=build.id,
                 key=build.conda_lock_key,
                 value=json.dumps(
@@ -276,8 +251,8 @@ def build_conda_environment(db: Session, conda_store, build):
                 conda_lock_spec=conda_lock_spec,
                 pkgs_dir=conda_utils.conda_root_package_dir(),
                 stdout=LoggedStream(
-                    db=db,
-                    conda_store=conda_store,
+                    db=build_context.db,
+                    conda_store=build_context.conda_store,
                     build=build,
                     prefix="action_fetch_and_extract_conda_packages: ",
                 ),
@@ -287,8 +262,8 @@ def build_conda_environment(db: Session, conda_store, build):
                 conda_lock_spec=conda_lock_spec,
                 conda_prefix=conda_prefix,
                 stdout=LoggedStream(
-                    db=db,
-                    conda_store=conda_store,
+                    db=build_context.db,
+                    conda_store=build_context.conda_store,
                     build=build,
                     prefix="action_install_lockfile: ",
                 ),
@@ -299,24 +274,24 @@ def build_conda_environment(db: Session, conda_store, build):
 
         action.action_set_conda_prefix_permissions(
             conda_prefix=conda_prefix,
-            permissions=settings.default_permissions,
-            uid=settings.default_uid,
-            gid=settings.default_gid,
+            permissions=build_context.settings.default_permissions,
+            uid=build_context.settings.default_uid,
+            gid=build_context.settings.default_gid,
             stdout=LoggedStream(
-                db=db,
-                conda_store=conda_store,
+                db=build_context.db,
+                conda_store=build_context.conda_store,
                 build=build,
                 prefix="action_set_conda_prefix_permissions: ",
             ),
         )
 
         action.action_add_conda_prefix_packages(
-            db=db,
+            db=build_context.db,
             conda_prefix=conda_prefix,
             build_id=build.id,
             stdout=LoggedStream(
-                db=db,
-                conda_store=conda_store,
+                db=build_context.db,
+                conda_store=build_context.conda_store,
                 build=build,
                 prefix="action_add_conda_prefix_packages: ",
             ),
@@ -325,33 +300,33 @@ def build_conda_environment(db: Session, conda_store, build):
         context = action.action_get_conda_prefix_stats(
             conda_prefix,
             stdout=LoggedStream(
-                db=db,
-                conda_store=conda_store,
+                db=build_context.db,
+                conda_store=build_context.conda_store,
                 build=build,
                 prefix="action_get_conda_prefix_stats: ",
             ),
         )
         build.size = context.result["disk_usage"]
 
-        set_build_completed(db, conda_store, build)
+        set_build_completed(build_context.db, build_context.conda_store, build)
     # Always mark build as failed first since other functions may throw an
     # exception
     except subprocess.CalledProcessError as e:
-        set_build_failed(db, build)
-        conda_store.log.exception(e)
-        append_to_logs(db, conda_store, build, e.output)
+        set_build_failed(build_context.db, build)
+        build_context.conda_store.log.exception(e)
+        append_to_logs(build_context.db, build_context.conda_store, build, e.output)
         raise e
     except utils.BuildPathError as e:
         # Provide status_info, which will be exposed to the user, ONLY in this
         # case because the error message doesn't expose sensitive information
-        set_build_failed(db, build, status_info=e.message)
-        conda_store.log.exception(e)
-        append_to_logs(db, conda_store, build, traceback.format_exc())
+        set_build_failed(build_context.db, build, status_info=e.message)
+        build_context.conda_store.log.exception(e)
+        append_to_logs(build_context.db, build_context.conda_store, build, traceback.format_exc())
         raise e
     except Exception as e:
-        set_build_failed(db, build)
-        conda_store.log.exception(e)
-        append_to_logs(db, conda_store, build, traceback.format_exc())
+        set_build_failed(build_context.db, build)
+        build_context.conda_store.log.exception(e)
+        append_to_logs(build_context.db, build_context.conda_store, build, traceback.format_exc())
         raise e
 
 
