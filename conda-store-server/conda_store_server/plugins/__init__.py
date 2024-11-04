@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from conda_store_server.plugins.locker import conda_lock
-from conda_store_server.plugins.locker import slim_lock
+from conda_store_server.plugins.lock import conda_lock
+from conda_store_server.plugins.lock import slim_lock
 
 from conda_store_server.plugins.storage import base_storage
 from conda_store_server.plugins.storage import local_storage

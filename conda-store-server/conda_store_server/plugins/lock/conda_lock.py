@@ -42,7 +42,7 @@ class CondaLock(LoggingConfigurable):
         context: PluginContext,
         spec: schema.CondaSpecification, 
         platforms: typing.List[str] = [conda_utils.conda_platform()],
-    ) -> PluginContext:
+    ) -> str:
         context.log.info("lock_environment entrypoint for conda-lock")
 
         environment_filename = pathlib.Path.cwd() / "environment.yaml"

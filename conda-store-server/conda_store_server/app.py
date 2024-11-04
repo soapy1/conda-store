@@ -30,9 +30,7 @@ from traitlets.config import LoggingConfigurable
 from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, orm, schema, utils
 from conda_store_server.plugins import hookspec, registration
-from conda_store_server.plugins.locker.conda_lock import CondaLock
 from conda_store_server.plugins.storage.base_storage import BaseStorage
-from conda_store_server.plugins.storage.local_storage import LocalStorage
 from conda_store_server.exception import CondaStorePluginNotFoundError
 
 def conda_store_validate_specification(

@@ -67,7 +67,7 @@ class CondaStoreSpecs:
         """Get an artifact url from storage"""
 
     @hookspec
-    def delete(
+    def storage_delete(
         self,
         db, 
         build_id: int, 
