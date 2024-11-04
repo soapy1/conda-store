@@ -335,13 +335,11 @@ def solve_conda_environment(build_context, solve: orm.Solve):
     solve.started_on = datetime.datetime.utcnow()
     build_context.db.commit()
 
-    context = action.action_solve_lockfile(
-        conda_command=build_context.settings.conda_command,
-        specification=schema.CondaSpecification.parse_obj(solve.specification.spec),
-        platforms=[conda_utils.conda_platform()],
-        conda_flags=build_context.conda_store.conda_flags,
-    )
-    conda_lock_spec = context.result
+    conda_lock_spec = build_context.conda_store.plugin_manager.hook.lock_environment(
+            context=PluginContext(),
+            spec=schema.CondaSpecification.parse_obj(solve.specification.spec),
+            platforms=[conda_utils.conda_platform()],
+        )
 
     action.action_add_lockfile_packages(
         db=build_context.db,
