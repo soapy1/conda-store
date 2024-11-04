@@ -19,6 +19,8 @@ from sqlalchemy.orm import Session
 from conda_store_server import api
 from conda_store_server._internal import action, conda_utils, orm, schema, utils
 from conda_store_server.plugins.plugin_context import PluginContext
+from conda_store_server.exception import CondaStorePluginNotFoundError
+
 
 class LoggedStream:
     """Allows writing to storage via logging.StreamHandler"""
@@ -177,6 +179,26 @@ or error in conda-store
             else:
                 set_build_failed(db, build)
 
+
+def execute_build_task(fn, conda_store, db, build):
+    settings = conda_store.get_settings(
+        db=db,
+        namespace=build.environment.namespace.name,
+        environment_name=build.environment.name,
+    )
+
+    locker_plugin_name = conda_store.locker_plugin_name
+    locker_plugin = conda_store.plugin_registry.get_plugin(locker_plugin_name)   
+    if locker_plugin is None:
+        raise CondaStorePluginNotFoundError(conda_store.locker_plugin_name, conda_store.plugin_registry.list_plugin_names())     
+    conda_store.plugin_manager.register(
+        locker_plugin(conda_command=settings.conda_command, conda_flags=conda_store.conda_flags),
+        name=locker_plugin_name
+    )
+
+    fn(db=db, conda_store=conda_store, build=build)
+
+    conda_store.plugin_manager.unregister(name=locker_plugin_name)
 
 def build_conda_environment(db: Session, conda_store, build):
     """Build a conda environment with set uid/gid/and permissions and

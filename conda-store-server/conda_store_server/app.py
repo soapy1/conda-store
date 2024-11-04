@@ -496,10 +496,10 @@ class CondaStore(LoggingConfigurable):
         self._plugin_manager = pluggy.PluginManager(hookspec.spec_name)
         self._plugin_manager.add_hookspecs(hookspec.CondaStoreSpecs)
         
-        locker_plugin = self.plugin_registry.get_plugin(self.locker_plugin_name)   
-        if locker_plugin is None:
-            raise CondaStorePluginNotFoundError(self.locker_plugin_name, self.plugin_registry.list_plugin_names())     
-        self._plugin_manager.register(locker_plugin(parent=self, log=self.log))
+        # locker_plugin = self.plugin_registry.get_plugin(self.locker_plugin_name)   
+        # if locker_plugin is None:
+        #     raise CondaStorePluginNotFoundError(self.locker_plugin_name, self.plugin_registry.list_plugin_names())     
+        # self._plugin_manager.register(locker_plugin(parent=self, log=self.log))
 
         # Storage plugins are loaded globaly for the application
         # Always load the base storage plugin
