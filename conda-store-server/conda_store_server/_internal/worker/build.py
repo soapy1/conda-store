@@ -356,28 +356,20 @@ def solve_conda_environment(build_context, solve: orm.Solve):
 
 @build_context.build_task
 def build_conda_env_export(build_context, build: orm.Build):
-    conda_prefix = build.build_path(build_context.conda_store)
-
-    context = action.action_generate_conda_export(
-        conda_command=build_context.settings.conda_command,
-        conda_prefix=conda_prefix,
-        stdout=LoggedStream(
-            db=build_context.db,
+    export_plugin_cls = build_context.conda_store.plugin_registry.get_plugin("artifact-conda-env-export")
+    export_plugin = export_plugin_cls(conda_command=build_context.settings.conda_command)
+    export_plugin.artifact_build(
+        context=PluginContext(
             conda_store=build_context.conda_store,
-            build=build,
-            prefix="action_generate_conda_export: ",
+            stdout=LoggedStream(
+                            db=build_context.db,
+                            conda_store=build_context.conda_store,
+                            build=build,
+                            prefix="hook-lock_environment: ",
+                        )
         ),
-    )
-
-    conda_prefix_export = yaml.dump(context.result).encode("utf-8")
-
-    build_context.conda_store.plugin_manager.hook.storage_set(
         db=build_context.db,
-        build_id=build.id,
-        key=build.conda_env_export_key,
-        value=conda_prefix_export,
-        content_type="text/yaml",
-        artifact_type=schema.BuildArtifactType.YAML,
+        build=build
     )
 
 

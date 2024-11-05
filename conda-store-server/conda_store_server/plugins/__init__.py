@@ -9,6 +9,8 @@ from conda_store_server.plugins.storage import base_storage
 from conda_store_server.plugins.storage import local_storage
 from conda_store_server.plugins.storage import s3_storage
 
+from conda_store_server.plugins.artifact import conda_env_export
+
 
 BUILTIN_PLUGINS = [
     conda_lock.CondaLock,
@@ -16,4 +18,5 @@ BUILTIN_PLUGINS = [
     base_storage.BaseStorage,
     local_storage.LocalStorage,
     s3_storage.S3Storage,
+    conda_env_export.CondaEnvExport,
 ]

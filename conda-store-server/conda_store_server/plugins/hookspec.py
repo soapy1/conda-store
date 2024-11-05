@@ -5,7 +5,9 @@
 import pluggy
 import typing
 
-from conda_store_server._internal import conda_utils, schema
+from sqlalchemy.orm import Session
+
+from conda_store_server._internal import conda_utils, schema, orm
 from conda_store_server.plugins import plugin_context
 
 
@@ -18,6 +20,15 @@ hookimpl = pluggy.HookimplMarker(spec_name)
 
 class CondaStoreSpecs:
     """Conda Store hookspecs"""
+
+    @hookspec
+    def artifact_build(
+        self,
+        context: plugin_context.PluginContext,
+        db: Session,
+        build: orm.Build
+    ):
+        """Build an artifact, eg. a conda pack, conda env, etc"""
 
     @hookspec(firstresult=True)
     def lock_environment(

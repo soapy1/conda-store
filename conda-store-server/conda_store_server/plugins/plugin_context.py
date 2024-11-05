@@ -64,4 +64,5 @@ class PluginContext:
         self.stdout.write(result.stdout)
         if not redirect_stderr:
             self.stderr.write(result.stderr)
+        return result
 
