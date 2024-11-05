@@ -5,7 +5,6 @@
 import logging
 
 from conda_store_server.server.auth import DummyAuthentication
-from conda_store_server.storage import S3Storage
 
 
 # ==================================
@@ -14,7 +13,7 @@ from conda_store_server.storage import S3Storage
 # The default storage_threshold limit was reached on CI, which caused test
 # failures
 c.CondaStore.storage_threshold = 1024**3
-c.CondaStore.storage_class = S3Storage
+c.CondaStore.storage_plugin_name = "s3-storage"
 c.CondaStore.store_directory = "/var/lib/conda-store/"
 c.CondaStore.environment_directory = "/opt/conda-store/envs/{namespace}-{name}"
 # c.CondaStore.database_url = "mysql+pymysql://admin:password@mysql/conda-store"
