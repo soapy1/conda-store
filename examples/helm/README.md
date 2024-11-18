@@ -1,5 +1,8 @@
 # Install conda-store with Helm
 
+## TODO:
+* local volume does not get the disk free metrics corectly
+
 ## Setup
 
 ### Setup cluster and install dependencies
@@ -89,4 +92,16 @@ $ curl http://localhost:8080
 <html>
     <head>
     . . .
+```
+
+### Helpful commands for inspecting the system
+
+Connect to the database pod with psql
+```
+$ kub exec --stdin --tty postgres-68cd794f77-z7qzk -n conda-store -- psql -U admin conda-store  
+```
+
+Connect to the worker pod with a shell
+```
+$ kub exec --stdin --tty conda-store-worker-9cc75dd7d-87nz8 -n conda-store -- /bin/bash 
 ```
