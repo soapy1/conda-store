@@ -11,7 +11,9 @@ from celery.result import AsyncResult
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
 
-from conda_store_server import __version__, api, app
+from conda_store_server import __version__, api
+from conda_store_server.conda_store import CondaStore 
+from conda_store_server.conda_store_config import CondaStore as CondaStoreConfig
 from conda_store_server._internal import orm, schema, utils
 from conda_store_server._internal.environment import filter_environments
 from conda_store_server._internal.schema import AuthenticationToken, Permissions
@@ -170,7 +172,7 @@ async def api_get_permissions(
             "primary_namespace": (
                 entity.primary_namespace
                 if authenticated
-                else conda_store.default_namespace
+                else conda_store.config.default_namespace
             ),
             "entity_permissions": entity_binding_permissions,
             "entity_roles": entity_binding_roles,
@@ -226,7 +228,7 @@ async def api_post_token(
         entity = schema.AuthenticationToken(
             exp=datetime.datetime.now(tz=datetime.timezone.utc)
             + datetime.timedelta(days=1),
-            primary_namespace=conda_store.default_namespace,
+            primary_namespace=conda_store.config.default_namespace,
             role_bindings={},
         )
 
@@ -632,7 +634,7 @@ async def api_delete_namespace(
 )
 async def api_list_environments(
     auth: Authentication = Depends(dependencies.get_auth),
-    conda_store: app.CondaStore = Depends(dependencies.get_conda_store),
+    conda_store: CondaStore = Depends(dependencies.get_conda_store),
     entity: AuthenticationToken = Depends(dependencies.get_entity),
     paginated_args: PaginatedArgs = Depends(get_paginated_args),
     artifact: Optional[schema.BuildArtifactType] = None,
@@ -876,7 +878,7 @@ async def api_post_specification(
         permissions = {Permissions.ENVIRONMENT_CREATE}
 
         default_namespace = (
-            entity.primary_namespace if entity else conda_store.default_namespace
+            entity.primary_namespace if entity else conda_store.config.default_namespace
         )
 
         namespace_name = namespace or default_namespace
