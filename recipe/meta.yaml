@@ -60,7 +60,7 @@ outputs:
         - conda-store-worker = conda_store_server._internal.worker.__main__:main
     requirements:
       host:
-        - python >=3.10,<3.13
+        - python >=3.10,<3.14
         - pip
         - hatchling >=1.14.0
         - hatch-vcs
