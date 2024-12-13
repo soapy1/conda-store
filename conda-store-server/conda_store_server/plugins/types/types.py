@@ -5,6 +5,7 @@
 from typing import NamedTuple
 
 from conda_store_server.plugins.types.lock import LockPlugin
+from conda_store_server.plugins.types.config import ConfigPlugin
 
 
 class TypeLockPlugin(NamedTuple):
@@ -19,3 +20,17 @@ class TypeLockPlugin(NamedTuple):
     name: str
     synopsis: str
     backend: type[LockPlugin]
+
+
+class TypeConfigPlugin(NamedTuple):
+    """
+    Return type to use when defining a conda store lock plugin hook.
+
+    :param name: plugin name (e.g., `my-nice-lock-plugin-config`).
+    :param synopsis: a brief description of the plugin
+    :param backend: Type that will be instantiated as the config backend.
+    """
+
+    name: str
+    synopsis: str
+    backend: type[ConfigPlugin]
