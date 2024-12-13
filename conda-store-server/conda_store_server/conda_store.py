@@ -280,12 +280,14 @@ class CondaStore():
 
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace="solve",
             action=schema.Permissions.ENVIRONMENT_SOLVE,
         )
 
         specification_model = self.config.validate_specification(
             db=db,
+            conda_store=self,
             namespace="solve",
             specification=specification,
         )
@@ -323,6 +325,7 @@ class CondaStore():
 
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace=namespace.name,
             action=schema.Permissions.ENVIRONMENT_CREATE,
         )
@@ -335,6 +338,7 @@ class CondaStore():
         else:
             specification_model = self.config.validate_specification(
                 db=db,
+                conda_store=self,
                 namespace=namespace.name,
                 specification=schema.CondaSpecification.model_validate(specification),
             )
@@ -377,6 +381,7 @@ class CondaStore():
         environment = api.get_environment(db, id=environment_id)
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace=environment.namespace.name,
             action=schema.Permissions.ENVIRONMENT_UPDATE,
         )
@@ -443,6 +448,7 @@ class CondaStore():
     ):
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace=namespace,
             action=schema.Permissions.ENVIRONMENT_UPDATE,
         )
@@ -491,6 +497,7 @@ class CondaStore():
     def delete_namespace(self, db: Session, namespace: str):
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace=namespace,
             action=schema.Permissions.NAMESPACE_DELETE,
         )
@@ -517,6 +524,7 @@ class CondaStore():
     def delete_environment(self, db: Session, namespace: str, name: str):
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace=namespace,
             action=schema.Permissions.ENVIRONMENT_DELETE,
         )
@@ -545,6 +553,7 @@ class CondaStore():
 
         self.config.validate_action(
             db=db,
+            conda_store=self,
             namespace=build.environment.namespace.name,
             action=schema.Permissions.BUILD_DELETE,
         )
