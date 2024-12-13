@@ -8,18 +8,19 @@ class ConfigPlugin:
     Interface for Config plugins. These plugins
 
       * :meth: `validate`
-      * :meth: `load'
+      * :meth: `load_config_file'
     """
 
-    def load(self, config_file: str):
+    def load_config_file(self, config_file: str):
         """
         Loads config from a file
         """
         raise NotImplementedError
     
-    def validate(self, conda_store) -> bool:
+    def validate(self, conda_store):
         """
-        Validate the specified config
+        Validate the specified config. Raise an error if the config
+        is not valid
 
         :param conda_store: a conda_store:CondaStore instance
         """
