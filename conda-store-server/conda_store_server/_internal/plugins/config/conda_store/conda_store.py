@@ -66,7 +66,7 @@ def conda_store_validate_action(
 
 
 class CondaStore(config.ConfigPlugin, LoggingConfigurable):
-    def validate(self, conda_store):
+    def validate_config(self, conda_store):
         return
     
     build_directory = Unicode(
