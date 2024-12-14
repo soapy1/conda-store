@@ -17,7 +17,7 @@ class ConfigPlugin:
         """
         raise NotImplementedError
     
-    def validate(self, conda_store):
+    def validate_config(self, conda_store):
         """
         Validate the specified config. Raise an error if the config
         is not valid
