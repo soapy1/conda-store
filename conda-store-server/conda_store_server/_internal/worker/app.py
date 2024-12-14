@@ -68,8 +68,7 @@ class CondaStoreWorker(Application):
         super().initialize(*args, **kwargs)
         self.load_config_file(self.config_file)
         
-        self.conda_store_config = CondaStoreConfig(parent=self, log=self.log)
-        self.conda_store = CondaStore(config=self.conda_store_config)
+        self.conda_store = CondaStore(config=self)
         # ensure checks on redis_url
         self.conda_store.config.redis_url
 

@@ -20,9 +20,12 @@ from conda_store_server.plugins.types import lock
 
 
 class CondaStore():
-    def __init__(self, config: conda_store_config.CondaStore):
-        self.config = config
+    def __init__(self, config):
         self.log = logging.getLogger(__name__)
+
+        confs = self.plugin_manager.get_config_plugins()
+        conda_store_config_plugin = confs.get("conda-store")
+        self.config = conda_store_config_plugin.backend(parent=config, log=self.log)
 
     @property
     def session_factory(self) -> sessionmaker:
