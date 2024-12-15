@@ -13,7 +13,6 @@ from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
 
 from conda_store_server import __version__, api
 from conda_store_server.conda_store import CondaStore 
-from conda_store_server.conda_store_config import CondaStore as CondaStoreConfig
 from conda_store_server._internal import orm, schema, utils
 from conda_store_server._internal.environment import filter_environments
 from conda_store_server._internal.schema import AuthenticationToken, Permissions

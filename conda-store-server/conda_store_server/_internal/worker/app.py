@@ -11,7 +11,6 @@ from traitlets.config import Application, catch_config_error
 
 from conda_store_server import __version__
 from conda_store_server.conda_store import CondaStore 
-from conda_store_server.conda_store_config import CondaStore as CondaStoreConfig
 
 
 class CondaStoreWorker(Application):

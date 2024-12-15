@@ -13,8 +13,8 @@ from celery import Celery, group
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from conda_store_server import CONDA_STORE_DIR, api, storage, conda_store_config
-from conda_store_server._internal import conda_utils, orm, schema, utils, environment
+from conda_store_server import CONDA_STORE_DIR, api, storage
+from conda_store_server._internal import conda_utils, orm, schema, utils
 from conda_store_server.plugins import hookspec, plugin_manager
 from conda_store_server.plugins.types import lock
 
@@ -23,6 +23,7 @@ class CondaStore():
     def __init__(self, config):
         self.log = logging.getLogger(__name__)
 
+        # TODO: need a better idea for loading config
         confs = self.plugin_manager.get_config_plugins()
         conda_store_config_plugin = confs.get("conda-store")
         self.config = conda_store_config_plugin.backend(parent=config, log=self.log)
