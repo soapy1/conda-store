@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from conda_store_server import api, storage
 from conda_store_server.conda_store import CondaStore 
-from conda_store_server.conda_store_config import CondaStore as CondaStoreConfig
+from conda_store_server._internal.plugins.config.conda_store.conda_store import CondaStore as CondaStoreConfig
 
 from conda_store_server._internal import (  # isort:skip
     action,
