@@ -24,7 +24,7 @@ class CondaStore():
         self.log = logging.getLogger(__name__)
 
         # TODO: need a better idea for loading config
-        confs = self.plugin_manager.get_config_plugins()
+        confs = self.plugin_manager.get_trait_config_plugins()
         conda_store_config_plugin = confs.get("conda-store")
         self.config = conda_store_config_plugin.backend(parent=config, log=self.log)
 

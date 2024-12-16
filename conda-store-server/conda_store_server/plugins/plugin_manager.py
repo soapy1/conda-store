@@ -17,9 +17,9 @@ class PluginManager(pluggy.PluginManager):
       * discovering and registering CondaStore plugins
     """
 
-    def get_config_plugins(self) -> dict[str, types.TypeConfigPlugin]:
+    def get_trait_config_plugins(self) -> dict[str, types.TypeTraitConfigPlugin]:
         """Returns a dict of config plugin name to class"""
-        plugins = [item for items in self.hook.config_plugins() for item in items]
+        plugins = [item for items in self.hook.trait_config_plugins() for item in items]
         return {p.name.lower(): p for p in plugins}
 
     def get_lock_plugins(self) -> dict[str, types.TypeLockPlugin]:

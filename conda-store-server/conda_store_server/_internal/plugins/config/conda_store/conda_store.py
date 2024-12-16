@@ -23,7 +23,7 @@ from conda_store_server import CONDA_STORE_DIR, BuildKey, api, registry, storage
 from conda_store_server._internal import conda_utils, environment, schema, utils
 
 from conda_store_server.plugins.hookspec import hookimpl
-from conda_store_server.plugins.types import config, types
+from conda_store_server.plugins.types import trait_config, types
 
 
 def conda_store_validate_specification(
@@ -65,10 +65,7 @@ def conda_store_validate_action(
         )
 
 
-class CondaStore(config.ConfigPlugin, LoggingConfigurable):
-    def validate_config(self, conda_store):
-        return
-    
+class CondaStore(trait_config.TraitConfigPlugin):
     build_directory = Unicode(
         "{store_directory}/{namespace}",
         help="Template used to form the directory for storing conda environment builds. Available keys: store_directory, namespace, name. The default will put all built environments in the same namespace within the same directory.",
@@ -366,9 +363,9 @@ class CondaStore(config.ConfigPlugin, LoggingConfigurable):
 
 
 @hookimpl
-def config_plugins():
+def trait_config_plugins():
     """conda-store config plugin"""
-    yield types.TypeConfigPlugin(
+    yield types.TypeTraitConfigPlugin(
         name="conda-store",
         synopsis="Config for global conda-store instance",
         backend=CondaStore,
