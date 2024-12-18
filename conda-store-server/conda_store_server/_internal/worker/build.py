@@ -197,7 +197,6 @@ def build_conda_environment(db: Session, conda_store, build):
         )
 
         settings = conda_store.get_settings(
-            db=db,
             namespace=build.environment.namespace.name,
             environment_name=build.environment.name,
         )
@@ -360,7 +359,6 @@ def solve_conda_environment(db: Session, conda_store, solve: orm.Solve):
 def build_conda_env_export(db: Session, conda_store, build: orm.Build):
     conda_prefix = build.build_path(conda_store)
     settings = conda_store.get_settings(
-        db=db,
         namespace=build.environment.namespace.name,
         environment_name=build.environment.name,
     )
@@ -430,7 +428,6 @@ def build_constructor_installer(db: Session, conda_store, build: orm.Build):
     conda_prefix = build.build_path(conda_store)
 
     settings = conda_store.get_settings(
-        db=db,
         namespace=build.environment.namespace.name,
         environment_name=build.environment.name,
     )
