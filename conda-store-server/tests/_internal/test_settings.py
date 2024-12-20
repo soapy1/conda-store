@@ -14,69 +14,67 @@ from conda_store_server._internal.settings import Settings
 @pytest.fixture
 def settings(db) -> Settings:
     default_settings = schema.Settings(
-        default_uid = 999,
-        default_gid = 999,
-        conda_channel_alias = "defaultchannelalias"
+        default_uid=999, default_gid=999, conda_channel_alias="defaultchannelalias"
     )
 
     # setup test global settings
     global_settings = {
         "default_uid": 888,
         "conda_channel_alias": "globalchannelalias",
-        "conda_command": "myglobalcondacommand"
+        "conda_command": "myglobalcondacommand",
     }
     api.set_kvstore_key_values(db, "setting", global_settings)
 
     # setup test namespace settings
-    namespace_settings =  {
+    namespace_settings = {
         "conda_channel_alias": "namespacechannelalias",
         "conda_command": "mynamespacecondacommand",
-        "conda_default_packages": ["ipykernel"]
+        "conda_default_packages": ["ipykernel"],
     }
     api.set_kvstore_key_values(db, "setting/test_namespace", namespace_settings)
 
     # setup test namespace (two) settings
-    namespace_two_settings =  {
+    namespace_two_settings = {
         "conda_channel_alias": "namespacechannelalias",
     }
     api.set_kvstore_key_values(db, "setting/test_namespace_two", namespace_two_settings)
 
     # setup test environment settings
-    environment_settings =  {
+    environment_settings = {
         "conda_channel_alias": "envchannelalias",
-        "conda_default_packages": ["numpy"]
+        "conda_default_packages": ["numpy"],
     }
-    api.set_kvstore_key_values(db, "setting/test_namespace/test_env", environment_settings)
-
-    return Settings(
-        db=db, deployment_default=default_settings
+    api.set_kvstore_key_values(
+        db, "setting/test_namespace/test_env", environment_settings
     )
+
+    return Settings(db=db, deployment_default=default_settings)
 
 
 def test_ensure_session_is_closed(settings: Settings):
     # run a query against the db to start a transaction
     settings.get_settings()
     # ensure that the settings object cleans up it's transaction
-    assert settings.db.in_transaction() == False
+    assert not settings.db.in_transaction()
 
 
 @mock.patch("conda_store_server.api.get_kvstore_key_values")
-def test_ensure_session_is_closed_on_error(mock_get_kvstore_key_values, settings: Settings):
+def test_ensure_session_is_closed_on_error(
+    mock_get_kvstore_key_values, settings: Settings
+):
     mock_get_kvstore_key_values.side_effect = Exception
 
     # run a query that will raise an exception
-    try:
+    with pytest.raises(Exception):
         settings.get_settings()
-    except:
-        pass
-    
+
     # ensure that the settings object cleans up it's transaction
-    assert settings.db.in_transaction() == False
-    
+    assert not settings.db.in_transaction()
+
 
 def test_get_settings_default(settings: Settings):
     test_settings = settings.get_settings()
-    
+
     # ensure that we get the deployment default values
     assert test_settings.default_gid == 999
 
@@ -91,7 +89,7 @@ def test_get_settings_default(settings: Settings):
 
 def test_get_settings_namespace(settings: Settings):
     test_settings = settings.get_settings(namespace="test_namespace")
-    
+
     # ensure that we get the deployment default values
     assert test_settings.default_gid == 999
 
@@ -109,7 +107,7 @@ def test_get_settings_namespace(settings: Settings):
 
 def test_get_settings_namespace_two(settings: Settings):
     test_settings = settings.get_settings(namespace="test_namespace_two")
-    
+
     # ensure that we get the deployment default values
     assert test_settings.default_gid == 999
 
@@ -126,8 +124,10 @@ def test_get_settings_namespace_two(settings: Settings):
 
 
 def test_get_settings_environment(settings: Settings):
-    test_settings = settings.get_settings(namespace="test_namespace", environment_name="test_env")
-    
+    test_settings = settings.get_settings(
+        namespace="test_namespace", environment_name="test_env"
+    )
+
     # ensure that we get the deployment default values
     assert test_settings.default_gid == 999
 
@@ -147,7 +147,7 @@ def test_get_settings_namespace_dne(settings: Settings):
     # get settings for namespace that does not exist - we should
     # still get the default settings
     test_settings = settings.get_settings(namespace="idontexist")
-    
+
     # ensure that we get the deployment default values
     assert test_settings.default_gid == 999
 
@@ -166,6 +166,7 @@ def test_set_settings_global_default(settings: Settings):
     check_settings = settings.get_settings(namespace="test_namespace")
     assert check_settings.default_uid == 0
 
+
 def test_set_settings_global_overriden_by_default(settings: Settings):
     # set test settings
     settings.set_settings(data={"conda_channel_alias": "newchanelalias"})
@@ -179,16 +180,18 @@ def test_set_settings_global_overriden_by_default(settings: Settings):
 
 def test_set_settings_invalid_setting_field(settings: Settings):
     with pytest.raises(ValueError, match=r"Invalid setting keys"):
-        settings.set_settings(data={"idontexist": "sure", "conda_channel_alias": "mynewalias"})
+        settings.set_settings(
+            data={"idontexist": "sure", "conda_channel_alias": "mynewalias"}
+        )
 
 
 def test_set_settings_invalid_setting_type(settings: Settings):
     with pytest.raises(ValueError, match=r"Invalid parsing of setting"):
-        settings.set_settings(data={"conda_channel_alias": [1,2,3]})
+        settings.set_settings(data={"conda_channel_alias": [1, 2, 3]})
 
 
 def test_set_settings_invalid_level(settings: Settings):
-    with pytest.raises(ValueError, match=r"is a global setting cannot be set within namespace"):
-        settings.set_settings(
-            namespace="mynamespace", data={"default_uid": 777}
-        )
+    with pytest.raises(
+        ValueError, match=r"is a global setting cannot be set within namespace"
+    ):
+        settings.set_settings(namespace="mynamespace", data={"default_uid": 777})

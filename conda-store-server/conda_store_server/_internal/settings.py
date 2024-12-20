@@ -2,11 +2,11 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Any, Dict, Callable
 import functools
+from typing import Any, Callable, Dict
 
-from sqlalchemy.orm import Session
 import pydantic
+from sqlalchemy.orm import Session
 
 from conda_store_server import api
 from conda_store_server._internal import schema
@@ -23,6 +23,7 @@ class Settings:
             result = func(self, *args, **kwargs)
             self.db.close()
             return result
+
         return wrapper
 
     @_ensure_closed_session
