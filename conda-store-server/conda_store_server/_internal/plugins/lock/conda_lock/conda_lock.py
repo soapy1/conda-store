@@ -18,8 +18,9 @@ from conda_store_server.plugins.types import lock, types
 
 class CondaLock(lock.LockPlugin):
     def _conda_command(self, conda_store) -> str:
-        settings = conda_store.get_settings()
-        return settings.conda_command
+        # conda_cmmand setting is set globally, so no need to specify
+        # the namespace or environment
+        return conda_store.get_setting("conda_command") or "mamba"
 
     def _conda_flags(self, conda_store) -> str:
         return conda_store.config.conda_flags
