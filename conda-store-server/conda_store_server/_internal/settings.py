@@ -123,7 +123,7 @@ class Settings:
 
     @_ensure_closed_session
     def get_setting(
-        self, name: str, namespace: str = None, environment_name: str = None
+        self, key: str, namespace: str = None, environment_name: str = None
     ) -> Any:
         """Get a given setting at the given level of specificity. Will short
         cut and look up global setting directly even if a namespace/environment
@@ -131,7 +131,7 @@ class Settings:
 
         Parameters
         ----------
-        name : str
+        key : str
             name of the setting to return
         namespace : str, optional
             namespace to use to retrieve settings
@@ -144,7 +144,7 @@ class Settings:
             setting value, merged for the given level of specificity
         """
         
-        field = schema.Settings.model_fields.get(name)
+        field = schema.Settings.model_fields.get(key)
         if field is None:
             return
         
@@ -156,9 +156,9 @@ class Settings:
                 prefixes.append(f"setting/{namespace}/{environment_name}")
 
         # start building settings with the least specific defaults
-        result = self.deployment_default.get(name)
+        result = self.deployment_default.get(key)
         for prefix in prefixes:
-            value = api.get_kvstore_key(self.db, prefix, name)
+            value = api.get_kvstore_key(self.db, prefix, key)
             if value is not None:
                 result = value
 
