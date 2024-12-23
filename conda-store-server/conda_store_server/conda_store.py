@@ -17,16 +17,13 @@ from conda_store_server import CONDA_STORE_DIR, api, storage
 from conda_store_server._internal import conda_utils, orm, schema, utils
 from conda_store_server.plugins import hookspec, plugin_manager
 from conda_store_server.plugins.types import lock
+from conda_store_server._internal.plugins.config.conda_store.conda_store import CondaStore as CondaStoreConfig
 
 
 class CondaStore():
     def __init__(self, config):
         self.log = logging.getLogger(__name__)
-
-        # TODO: need a better idea for loading config
-        confs = self.plugin_manager.get_trait_config_plugins()
-        conda_store_config_plugin = confs.get("conda-store")
-        self.config = conda_store_config_plugin.backend(parent=config, log=self.log)
+        self.config = CondaStoreConfig(parent=config, log=self.log)
 
     @property
     def session_factory(self) -> sessionmaker:
