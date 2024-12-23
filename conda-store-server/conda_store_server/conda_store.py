@@ -110,7 +110,7 @@ class CondaStore():
         #     return self._celery_app
 
         self._celery_app = Celery("tasks")
-        self._celery_app.config_from_object(self.config.celery_config)
+        self._celery_app.config_from_object(self.celery_config)
         return self._celery_app
 
     @property
@@ -241,43 +241,6 @@ class CondaStore():
 
         return schema.Settings(**settings)
     
-    def conda_store_validate_specification(
-        self,
-        db: Session,
-        namespace: str,
-        specification: schema.CondaSpecification,
-    ) -> schema.CondaSpecification:
-        settings = self.get_settings(
-            db, namespace=namespace, environment_name=specification.name
-        )
-
-        specification = environment.validate_environment_channels(specification, settings)
-        specification = environment.validate_environment_pypi_packages(
-            specification, settings
-        )
-        specification = environment.validate_environment_conda_packages(
-            specification, settings
-        )
-
-        return specification
-
-    def conda_store_validate_action(
-        self,
-        db: Session,
-        namespace: str,
-        action: schema.Permissions,
-    ) -> None:
-        settings = self.get_settings(db)
-        system_metrics = api.get_system_metrics(db)
-
-        if action in (
-            schema.Permissions.ENVIRONMENT_CREATE,
-            schema.Permissions.ENVIRONMENT_UPDATE,
-        ) and (settings.storage_threshold > system_metrics.disk_free):
-            raise utils.CondaStoreError(
-                f"`CondaStore.storage_threshold` reached. Action {action.value} prevented due to insufficient storage space"
-            )
-
     def register_solve(self, db: Session, specification: schema.CondaSpecification):
         """Registers a solve for a given specification"""
         settings = self.get_settings(db)

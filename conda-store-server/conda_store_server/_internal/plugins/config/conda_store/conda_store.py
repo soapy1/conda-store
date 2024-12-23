@@ -94,9 +94,6 @@ class CondaStore(trait_config.TraitConfigPlugin):
             schema.BuildArtifactType.LOGS,
             schema.BuildArtifactType.LOCKFILE,
             schema.BuildArtifactType.YAML,
-            # no possible way to delete these artifacts
-            # in most container registries via api
-            schema.BuildArtifactType.CONTAINER_REGISTRY,
         ],
         help="artifacts to keep on build deletion",
         config=True,
