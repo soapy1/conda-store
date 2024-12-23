@@ -3,7 +3,6 @@
 # license that can be found in the LICENSE file.
 
 from conda_store_server._internal import schema
-from conda_store_server.plugins.plugin_context import PluginContext
 
 
 class StoragePlugin:
@@ -12,9 +11,17 @@ class StoragePlugin:
     to the storage backend
     """
 
+    def __init__(self, conda_store):
+        """Create a StoragePlugin object
+
+        Attributes
+        ----------
+        conda_store : conda_store_server.conda_store
+            conda_store app instance
+        """
+
     def fset(
         self,
-        context: PluginContext,
         build_id: int,
         key: str,
         filename: str,
@@ -24,8 +31,6 @@ class StoragePlugin:
 
         Parameters
         ----------
-        context : plugin_context.PluginContext
-            plugin context to execute in
         build_id : int
             id of the build to associate the artifact with
         key : str
@@ -39,7 +44,6 @@ class StoragePlugin:
     
     def set(
         self,
-        context: PluginContext,
         build_id: int,
         key: str,
         value: str,
@@ -49,8 +53,6 @@ class StoragePlugin:
 
         Parameters
         ----------
-        context : plugin_context.PluginContext
-            plugin context to execute in
         build_id : int
             id of the build to associate the artifact with
         key : str
@@ -64,15 +66,12 @@ class StoragePlugin:
     
     def get(
         self,
-        context: PluginContext,
         key: str,
     ) -> str:
         """Retrieve an artifact by a given key
 
         Parameters
         ----------
-        context : plugin_context.PluginContext
-            plugin context to execute in
         key : str
             name of the artifact
 
@@ -85,15 +84,12 @@ class StoragePlugin:
     
     def get_url(
         self,
-        context: PluginContext,
         key: str,
     ) -> str:
         """Retrieve the url to an artifact by a given key
 
         Parameters
         ----------
-        context : plugin_context.PluginContext
-            plugin context to execute in
         key : str
             name of the artifact
 
@@ -106,7 +102,6 @@ class StoragePlugin:
     
     def delete(
         self,
-        context: PluginContext,
         build_id: int,
         key: str,
     ):
@@ -114,8 +109,6 @@ class StoragePlugin:
 
         Parameters
         ----------
-        context : plugin_context.PluginContext
-            plugin context to execute in
         build_id : int
             id of the build that the artifact is associated with
         key : str

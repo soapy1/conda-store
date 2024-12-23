@@ -40,6 +40,10 @@ class PluginManager(pluggy.PluginManager):
         """Returns a dict of config plugin name to class"""
         return self._get_plugins(self.hook.trait_config_plugins)
 
+    def get_trait_config_plugin(self, name: str) -> types.TypeTraitConfigPlugin:
+        """Returns a storage plugin by name"""
+        return self._get_plugin(self.get_trait_config_plugins, name)
+
     def get_lock_plugins(self) -> dict[str, types.TypeLockPlugin]:
         """Returns a dict of lock plugin name to class"""
         return self._get_plugins(self.hook.lock_plugins)

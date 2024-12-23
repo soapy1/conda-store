@@ -65,11 +65,9 @@ class CondaStore():
     def storage(self):
         if hasattr(self, "_storage"):
             return self._storage
-        self._storage = self.config.storage_class(parent=self.config, log=self.log)
 
-        if isinstance(self._storage, storage.LocalStorage):
-            os.makedirs(self._storage.storage_path, exist_ok=True)
-
+        storage_plugin = self.plugin_manager.get_storage_plugin(name="s3")
+        self._storage = storage_plugin.backend(conda_store=self)
         return self._storage
 
     @property
