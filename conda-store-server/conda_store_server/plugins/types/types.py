@@ -5,6 +5,7 @@
 from typing import NamedTuple
 
 from conda_store_server.plugins.types.lock import LockPlugin
+from conda_store_server.plugins.types.storage import StoragePlugin
 from conda_store_server.plugins.types.trait_config import TraitConfigPlugin
 
 
@@ -20,6 +21,20 @@ class TypeLockPlugin(NamedTuple):
     name: str
     synopsis: str
     backend: type[LockPlugin]
+
+
+class TypeStoragePlugin(NamedTuple):
+    """
+    Return type to use when defining a conda store storage plugin hook.
+
+    :param name: plugin name (e.g., `my-remote-storage-plugin`).
+    :param synopsis: a brief description of the plugin
+    :param backend: Type that will be instantiated as the storage backend.
+    """
+
+    name: str
+    synopsis: str
+    backend: type[StoragePlugin]
 
 
 class TypeTraitConfigPlugin(NamedTuple):

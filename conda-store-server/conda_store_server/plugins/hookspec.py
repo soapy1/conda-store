@@ -8,6 +8,7 @@ import pluggy
 
 from conda_store_server.plugins.types.lock import LockPlugin
 from conda_store_server.plugins.types.trait_config import TraitConfigPlugin
+from conda_store_server.plugins.types.storage import StoragePlugin
 
 spec_name = "conda-store"
 hookspec = pluggy.HookspecMarker(spec_name)
@@ -20,6 +21,11 @@ class CondaStoreSpecs:
     @hookspec
     def lock_plugins(self) -> Iterable[LockPlugin]:
         """Lock spec"""
+        yield from ()
+
+    @hookspec
+    def storage_plugins(self) -> Iterable[StoragePlugin]:
+        """Storage spec"""
         yield from ()
 
     @hookspec
