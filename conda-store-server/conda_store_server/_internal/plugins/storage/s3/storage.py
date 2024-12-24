@@ -14,6 +14,7 @@ from conda_store_server.plugins.types import storage, types
 
 from . import PLUGIN_NAME
 
+# TODO: get db out of the function signatures
 
 class S3Storage(storage.StoragePlugin):
     def __init__(self, conda_store):

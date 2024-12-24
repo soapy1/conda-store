@@ -8,10 +8,15 @@ from conda_store_server._internal.plugins.config.conda_store import conda_store
 from conda_store_server._internal.plugins.storage.s3 import config as s3_config
 from conda_store_server._internal.plugins.storage.s3 import storage as s3_storage
 
+from conda_store_server._internal.plugins.storage.local import config as local_config
+from conda_store_server._internal.plugins.storage.local import storage as local_storage
+
 
 BUILTIN_PLUGINS = [
     conda_lock,
     conda_store,
     s3_config,
     s3_storage,
+    local_config,
+    local_storage,
 ]
