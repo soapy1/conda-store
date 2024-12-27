@@ -299,13 +299,13 @@ class CondaStoreServer(Application):
             for path, method, func in self.additional_routes:
                 getattr(app, method)(path, name=func.__name__)(func)
 
-        if isinstance(self.conda_store.storage, storage.LocalStorage):
-            self.conda_store.storage.storage_url = (
+        if self.conda_store.config.storage_class is storage.LocalStorage:
+            self.conda_store.storage.config.storage_url = (
                 f"{trim_slash(self.url_prefix)}/storage"
             )
             app.mount(
-                self.conda_store.storage.storage_url,
-                StaticFiles(directory=self.conda_store.storage.storage_path),
+                self.conda_store.storage.config.storage_url,
+                StaticFiles(directory=self.conda_store.storage.config.storage_path),
                 name="static-storage",
             )
 

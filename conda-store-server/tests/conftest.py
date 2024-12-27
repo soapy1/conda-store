@@ -63,8 +63,6 @@ def conda_store_config(tmp_path):
     store_directory = tmp_path / ".conda-store" / "state"
     store_directory.mkdir(parents=True)
 
-    storage.LocalStorage.storage_path = str(tmp_path / ".conda-store" / "storage")
-
     original_sys_argv = list(sys.argv)
     sys.argv = [sys.argv[0]]
 
@@ -74,6 +72,9 @@ def conda_store_config(tmp_path):
                 storage_class=storage.LocalStorage,
                 store_directory=str(store_directory),
                 database_url=f"sqlite:///{filename}?check_same_thread=False",
+            ),
+            LocalStorage=dict(
+                storage_path=str(tmp_path / ".conda-store" / "storage")
             )
         )
 

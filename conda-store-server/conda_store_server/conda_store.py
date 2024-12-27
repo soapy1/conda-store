@@ -77,7 +77,7 @@ class CondaStore():
 
         self._storage = storage_plugin.backend(conda_store=self)
 
-        if isinstance(self._storage, storage.LocalStorage):
+        if self.config.storage_class is storage.LocalStorage:
             os.makedirs(self._storage.config.storage_path, exist_ok=True)
 
         return self._storage

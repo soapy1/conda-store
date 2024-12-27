@@ -53,7 +53,7 @@ class TestStorage:
 class TestLocalStorage:
     def test_fset_new_package(self, db, local_file_store):
         store = storage.LocalStorage()
-        store.storage_path = local_file_store
+        store.storage_path = str(local_file_store)
 
         filename = str(local_file_store / "testfile1")
         store.fset(
@@ -73,7 +73,7 @@ class TestLocalStorage:
 
     def test_fset_dont_overwrite_file(self, db, local_file_store):
         store = storage.LocalStorage()
-        store.storage_path = local_file_store
+        store.storage_path = str(local_file_store)
 
         filename = str(local_file_store / "testfile1")
         store.fset(
@@ -88,7 +88,7 @@ class TestLocalStorage:
 
     def test_set_new_package(self, db, local_file_store):
         store = storage.LocalStorage()
-        store.storage_path = local_file_store
+        store.storage_path = str(local_file_store)
 
         store.set(
             db,
@@ -107,14 +107,14 @@ class TestLocalStorage:
 
     def test_get(self, local_file_store):
         store = storage.LocalStorage()
-        store.storage_path = local_file_store
+        store.storage_path = str(local_file_store)
 
         content = store.get("testfile1")
         assert content == b"testfile1"
 
     def test_delete(self, seed_conda_store, local_file_store):
         store = storage.LocalStorage()
-        store.storage_path = local_file_store
+        store.storage_path = str(local_file_store)
         db = seed_conda_store
 
         inital_artifacts = api.list_build_artifacts(db).all()
