@@ -495,6 +495,7 @@ class CondaStore(LoggingConfigurable):
 
     def ensure_directories(self):
         """Ensure that conda-store filesystem directories exist"""
+        os.makedirs(CONDA_STORE_DIR, exist_ok=True)
         os.makedirs(self.store_directory, exist_ok=True)
 
     def ensure_conda_channels(self, db: Session):
