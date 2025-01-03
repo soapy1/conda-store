@@ -10,6 +10,7 @@ import string
 import sys
 import typing
 import uuid
+from collections import defaultdict
 
 import pytest
 import yaml
@@ -169,24 +170,24 @@ def seed_conda_store(db, conda_store):
 
 @pytest.fixture
 def seed_conda_store_big(db, conda_store):
-    default = {}
-    namespace1 = {}
-    namespace2 = {}
+    """Seed the conda-store db with 150 randomly named envs in 5 random namespaces."""
+    namespace_names = [str(uuid.uuid4()) for _ in range(5)]
+    namespaces = defaultdict(dict)
     for i in range(50):
         name = "".join(random.choices(string.ascii_letters, k=10))
-        default[name] = schema.CondaSpecification(
+        namespaces[random.choice(namespace_names)][name] = schema.CondaSpecification(
             name=name, channels=["defaults"], dependencies=["numpy"]
         )
 
         name = "".join(random.choices(string.ascii_letters, k=11))
-        namespace1[name] = schema.CondaSpecification(
+        namespaces[random.choice(namespace_names)][name] = schema.CondaSpecification(
             name=name,
             channels=["defaults"],
             dependencies=["flask"],
         )
 
         name = "".join(random.choices(string.ascii_letters, k=12))
-        namespace2[name] = schema.CondaSpecification(
+        namespaces[random.choice(namespace_names)][name] = schema.CondaSpecification(
             name=name,
             channels=["defaults"],
             dependencies=["flask"],
@@ -195,11 +196,7 @@ def seed_conda_store_big(db, conda_store):
     _seed_conda_store(
         db,
         conda_store,
-        {
-            "default": default,
-            "namespace1": namespace1,
-            "namespace2": namespace2,
-        },
+        namespaces,
     )
 
     # for testing purposes make build 4 complete

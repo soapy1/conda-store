@@ -7,8 +7,11 @@ from typing import Any
 import pydantic
 from fastapi import HTTPException
 from sqlalchemy import asc, desc, tuple_
+from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.orm import Query as SqlQuery
 from sqlalchemy.sql.expression import ColumnClause
+
+from conda_store_server._internal.orm import Base
 
 
 class Cursor(pydantic.BaseModel):
@@ -23,15 +26,47 @@ class Cursor(pydantic.BaseModel):
     last_value: dict[str, str] | None = {}
 
     def dump(self) -> str:
+        """Dump the cursor as a b64-encoded string.
+
+        Returns
+        -------
+        str
+            base64-encoded string containing the information needed
+            to retrieve the page of data following the location of the cursor
+        """
         return base64.b64encode(self.model_dump_json().encode("utf8"))
 
     @classmethod
     def load(cls, data: str | None = None) -> Cursor | None:
+        """Create a Cursor from  a b64-encoded string.
+
+        Parameters
+        ----------
+        data : str | None
+            base64-encoded string containing information about the cursor
+
+        Returns
+        -------
+        Cursor | None
+            Cursor representation of the b64-encoded string
+        """
         if data is None:
             return None
         return cls.from_json(base64.b64decode(data).decode("utf8"))
 
     def get_last_values(self, order_names: list[str]) -> list[Any]:
+        """Get a list of the values corresponding to the order_names.
+
+        Parameters
+        ----------
+        order_names : list[str]
+            List of names of values stored in the cursor
+
+        Returns
+        -------
+        list[Any]
+            The last values pointed to by the cursor for the given order_names
+        """
         if order_names:
             return [self.last_value[name] for name in order_names]
         else:
@@ -43,7 +78,6 @@ def paginate(
     ordering_metadata: OrderingMetadata,
     cursor: Cursor | None = None,
     order_by: list[str] | None = None,
-    # valid_order_by: dict[str, str] | None = None,
     order: str = "asc",
     limit: int = 10,
 ) -> tuple[SqlQuery, Cursor]:
@@ -61,8 +95,6 @@ def paginate(
     ----------
     query : SqlQuery
         Query containing database results to paginate
-    valid_order_by : dict[str, str] | None
-        Mapping between valid names to order by and the column names on the orm object they apply to
     cursor : Cursor | None
         Cursor object containing information about the last item on the previous page.
         If None, the first page is returned.
@@ -106,10 +138,9 @@ def paginate(
             )
         )
 
-    breakpoint()
-    query = query.order_by(
-        *[order_func(col) for col in columns], order_func(queried_type.id)
-    )
+    order_by_args = [order_func(col) for col in columns] + [order_func(queried_type.id)]
+
+    query = query.order_by(*order_by_args)
     data = query.limit(limit).all()
     count = query.count()
 
@@ -159,11 +190,13 @@ class OrderingMetadata:
         self,
         order_names: list[str] | None = None,
         column_names: list[str] | None = None,
+        column_objects: list[InstrumentedAttribute] | None = None,
     ):
         self.order_names = order_names
         self.column_names = column_names
+        self.column_objects = column_objects
 
-    def validate(self, model: Any):
+    def validate(self, model: Base):
         if len(self.order_names) != len(self.column_names):
             raise ValueError(
                 "Each name of a valid ordering available to the order_by query parameter"
@@ -196,14 +229,19 @@ class OrderingMetadata:
         if order_by:
             for order_name in order_by:
                 idx = self.order_names.index(order_name)
-                # columns.append(text(self.column_names[idx]))
-                columns.append(self.column_names[idx])
+                columns.append(self.column_objects[idx])
 
         return columns
 
+    def __str__(self) -> str:
+        return f"OrderingMetadata<order_names={self.order_names}, column_names={self.column_names}>"
+
+    def __repr__(self) -> str:
+        return str(self)
+
     def get_attr_values(
         self,
-        obj: Any,
+        obj: Base,
         order_by: list[str] | None = None,
     ) -> dict[str, Any]:
         """Using the order_by values, get the corresponding attribute values on obj.
@@ -223,7 +261,6 @@ class OrderingMetadata:
             A mapping between the `order_by` values and the attribute values on `obj`
 
         """
-        breakpoint()
         values = {}
         for order_name in order_by:
             idx = self.order_names.index(order_name)
@@ -233,7 +270,31 @@ class OrderingMetadata:
         return values
 
 
-def get_nested_attribute(obj: Any, attr: str) -> Any:
+def get_nested_attribute(obj: Base, attr: str) -> str | int | float:
+    """Get a nested attribute from the given sqlalchemy model.
+
+    Parameters
+    ----------
+    obj : Base
+        A sqlalchemy model for which a (possibly nested) attribute is to be
+        retrieved
+    attr : str
+        String attribute; nested attributes should be separated with `.`
+
+    Returns
+    -------
+    str | int | float
+        Value of the attribute; strictly this can be any column type supported
+        by sqlalchemy, but for conda-store this is a str, an int, or a float
+
+    Examples
+    --------
+    >>> env = db.query(orm.Environment).join(orm.Namespace).first()
+    >>> get_nested_attribute(env, 'namespace.name')
+    'namespace1'
+    >>> get_nested_attribute(env, 'name')
+    'my_environment'
+    """
     attribute, *rest = attr.split(".")
     while len(rest) > 0:
         obj = getattr(obj, attribute)

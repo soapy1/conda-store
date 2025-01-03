@@ -744,8 +744,8 @@ async def api_list_environments(
             query=query,
             ordering_metadata=OrderingMetadata(
                 order_names=["namespace", "name"],
-                # column_names=['namespace.name', 'name'],
-                column_names=[orm.Namespace.name, orm.Environment.name],
+                column_names=["namespace.name", "name"],
+                column_objects=[orm.Namespace.name, orm.Environment.name],
             ),
             cursor=cursor,
             order_by=paginated_args.sort_by,

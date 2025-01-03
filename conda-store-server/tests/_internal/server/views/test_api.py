@@ -1118,8 +1118,8 @@ def test_api_list_environments_by_namespace(
     model = schema.APIListEnvironment.model_validate(response.json())
     assert model.status == schema.APIStatus.OK
 
-    env_names = [env.namespace.name for env in model.data]
-    assert sorted(env_names, reverse=order == "desc") == env_names
+    namespace_names = [env.namespace.name for env in model.data]
+    assert sorted(namespace_names, reverse=order == "desc") == namespace_names
 
 
 @pytest.mark.parametrize(
@@ -1145,5 +1145,16 @@ def test_api_list_environments_by_namespace_name(
     model = schema.APIListEnvironment.model_validate(response.json())
     assert model.status == schema.APIStatus.OK
 
-    env_names = [env.namespace.name for env in model.data]
-    assert sorted(env_names, reverse=order == "desc") == env_names
+    # Get the namespace and environment names from the returned environments
+    namespace_names = [env.namespace.name for env in model.data]
+    env_names = [env.name for env in model.data]
+
+    # Check that they are identical to what we get if we sort them with python
+    # by both the namespace name and then environment name
+    sorted_envs = sorted(
+        model.data,
+        reverse=order == "desc",
+        key=lambda env: (env.namespace.name, env.name),
+    )
+    assert [env.name for env in sorted_envs] == env_names
+    assert [env.namespace.name for env in sorted_envs] == namespace_names
