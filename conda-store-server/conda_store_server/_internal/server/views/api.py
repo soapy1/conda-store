@@ -34,7 +34,7 @@ def get_cursor(encoded_cursor: Optional[str] = None) -> Cursor:
 
 
 def get_cursor_paginated_args(
-    order: Optional[str] = None,
+    order: Optional[str] = "asc",
     limit: Optional[int] = None,
     sort_by: List[str] = Query([]),
     server=Depends(dependencies.get_server),
@@ -63,7 +63,7 @@ router_api = APIRouter(
 
 def get_paginated_args(
     page: int = 1,
-    order: Optional[str] = None,
+    order: Optional[str] = "asc",
     size: Optional[int] = None,
     sort_by: List[str] = Query([]),
     server=Depends(dependencies.get_server),
