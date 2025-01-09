@@ -740,7 +740,7 @@ async def api_list_environments(
             role_bindings=auth.entity_bindings(entity),
         )
 
-        paginated, next_cursor = paginate(
+        paginated, next_cursor, count = paginate(
             query=query,
             ordering_metadata=OrderingMetadata(
                 order_names=["namespace", "name"],
@@ -754,10 +754,13 @@ async def api_list_environments(
         )
 
         return schema.APIListEnvironment(
-            data=paginated,
+            data=[
+                schema.Environment.model_validate(_).model_dump(exclude={"current_build"})
+                for _ in paginated
+            ],
             status="ok",
             cursor=None if next_cursor is None else next_cursor.dump(),
-            count=1000,
+            count=count,
         )
 
 

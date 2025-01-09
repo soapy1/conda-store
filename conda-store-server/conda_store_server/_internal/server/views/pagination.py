@@ -154,7 +154,7 @@ def paginate(
     else:
         next_cursor = None
 
-    return (data, next_cursor)
+    return (data, next_cursor, count)
 
 
 class CursorPaginatedArgs(pydantic.BaseModel):
