@@ -5,6 +5,7 @@ import operator
 from typing import Any
 
 import pydantic
+from pydantic_core import from_json
 from fastapi import HTTPException
 from sqlalchemy import asc, desc, tuple_
 from sqlalchemy.orm import InstrumentedAttribute
@@ -52,7 +53,7 @@ class Cursor(pydantic.BaseModel):
         """
         if data is None:
             return None
-        return cls.from_json(base64.b64decode(data).decode("utf8"))
+        return cls.model_validate(from_json(base64.b64decode(data).decode("utf8")))
 
     def get_last_values(self, order_names: list[str]) -> list[Any]:
         """Get a list of the values corresponding to the order_names.
